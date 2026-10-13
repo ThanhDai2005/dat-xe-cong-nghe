@@ -21,7 +21,11 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  const data = await res.json();
+  // Xử lý response rỗng (204 No Content, hoặc body không phải JSON)
+  const contentType = res.headers.get("content-type") || "";
+  const data = contentType.includes("application/json")
+    ? await res.json().catch(() => ({}))
+    : {};
 
   if (!res.ok) {
     throw { status: res.status, ...data };
