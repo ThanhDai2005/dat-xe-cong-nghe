@@ -1,115 +1,293 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
 import { cn } from "cn";
+import { toast } from "sonner";
+import { register } from "@/services/auth.service";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+export function RegisterForm({ className }: React.ComponentProps<"div">) {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [showPw,  setShowPw]  = useState(false);
+  const [showCPw, setShowCPw] = useState(false);
+  const [agreed,  setAgreed]  = useState(false);
+  const [form, setForm] = useState({
+    fullName: "", phone: "", email: "", password: "", confirmPassword: "",
+  });
 
-export function RegisterForm({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+  const set = (k: keyof typeof form) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!agreed) { toast.error("Vui lòng đồng ý với điều khoản dịch vụ"); return; }
+    if (form.password !== form.confirmPassword) { toast.error("Mật khẩu xác nhận không khớp"); return; }
+    setLoading(true);
+    try {
+      await register({
+        role: "CUSTOMER",
+        fullName: form.fullName,
+        phone: form.phone,
+        email: form.email || undefined,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+      });
+      toast.success("Đăng ký thành công! Vui lòng xác thực số điện thoại.");
+      navigate("/verify-otp", { state: { phone: form.phone, purpose: "register" } });
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message || "Đăng ký thất bại, vui lòng thử lại");
+    } finally { setLoading(false); }
+  };
+
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card className="overflow-hidden p-0">
-        <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
-            <FieldGroup>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <h1 className="text-2xl font-bold">Create your account</h1>
-                <p className="text-sm text-balance text-muted-foreground">
-                  Enter your email below to create your account
+    <div className={cn("flex flex-col w-full", className)}>
+      {/* Ambient background glow */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(64,194,253,0.18),rgba(250,248,255,0))] opacity-90" />
+
+      <div className="w-full max-w-6xl mx-auto flex flex-col">
+        {/* Main Dual-Column Card */}
+        <div className="w-full bg-surface-container-lowest rounded-2xl shadow-[0_20px_50px_-15px_rgba(19,27,46,0.08)] overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[760px]">
+
+          {/* ── LEFT PANEL ── */}
+          <div
+            className="lg:col-span-5 p-9 lg:p-14 text-on-primary flex flex-col justify-between relative overflow-hidden"
+            style={{ background: "linear-gradient(150deg, #094099 0%, #0050c8 55%, #1d68f2 100%)" }}
+          >
+            <div className="absolute -right-24 -top-24 w-80 h-80 rounded-full bg-secondary-container/20 blur-3xl pointer-events-none" />
+            <div className="absolute -left-20 -bottom-20 w-72 h-72 rounded-full bg-tertiary-fixed-dim/15 blur-2xl pointer-events-none" />
+
+            {/* Top storytelling */}
+            <div className="relative z-10 flex flex-col gap-6">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-sm">
+                  🛡️ NỀN TẢNG DI CHUYỂN THÔNG MINH
+                </span>
+                <h2 className="text-3xl lg:text-4xl font-extrabold text-white leading-tight tracking-tight mt-4 mb-3">
+                  Bắt đầu hành trình của bạn cùng GoRide ngay hôm nay.
+                </h2>
+              </div>
+              <img
+                src="https://lh3.googleusercontent.com/aida/AEtjO1XmIxNfivtmcnN48OfpRS4zSud4l2dluCvsDL-GE5I0qLgito8WKEnvEPxguIz3QgsxoEim_MQiv2mRn-a9wgV94hbL9d-Q1AftTaCy8-aQF2s0--tYWVov2d1UrW84bfg3VbZcd-oIMmGKamBFUfuY9rqogFDYwiCs10l0gK0BZVuk0lCLxxPIlpz3bWmrQw3laGS4POaYR5W1txdnFS9MB4L3hy_D0kyzYy8wY2NBhndB-ZtGpcKJtNo"
+                alt="GoRide Connection Illustration"
+                loading="lazy"
+                decoding="async"
+                className="w-full max-w-sm mx-auto my-6 drop-shadow-2xl"
+              />
+            </div>
+
+            {/* Bottom trust */}
+            <div className="relative z-10 pt-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur border border-white/20 text-white/90 text-xs font-medium">
+                ⚡ Kết nối tài xế siêu tốc trong bán kính 500m
+              </div>
+            </div>
+          </div>
+
+          {/* ── RIGHT PANEL ── */}
+          <div className="lg:col-span-7 p-9 lg:p-14 flex flex-col justify-between bg-surface-container-lowest">
+            <div className="w-full max-w-xl mx-auto flex flex-col">
+
+              {/* Form Header */}
+              <div className="mb-6">
+                <h1 className="text-headline-lg text-on-surface font-bold tracking-tight">
+                  Tạo tài khoản GoRide
+                </h1>
+                <p className="text-body-md text-on-surface-variant mt-1">
+                  Đăng ký để thuận tiện quản lý chuyến đi của bạn.
                 </p>
               </div>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
-                <FieldDescription>
-                  We&apos;ll use this to contact you. We will not share your
-                  email with anyone else.
-                </FieldDescription>
-              </Field>
-              <Field>
-                <Field className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel htmlFor="password">Password</FieldLabel>
-                    <Input id="password" type="password" required />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="confirm-password">
-                      Confirm Password
-                    </FieldLabel>
-                    <Input id="confirm-password" type="password" required />
-                  </Field>
-                </Field>
-                <FieldDescription>
-                  Must be at least 8 characters long.
-                </FieldDescription>
-              </Field>
-              <Field>
-                <Button type="submit">Create Account</Button>
-              </Field>
-              <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
-                Or continue with
-              </FieldSeparator>
-              <Field className="grid grid-cols-3 gap-4">
-                <Button variant="outline" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                      d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
-                      fill="currentColor"
+
+              <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+
+
+                {/* 1. Họ và tên */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md text-on-surface" htmlFor="fullName">
+                    Họ và tên <span className="text-error font-bold">*</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <span className="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[20px] pointer-events-none">person</span>
+                    <input
+                      id="fullName"
+                      type="text"
+                      value={form.fullName}
+                      onChange={set("fullName")}
+                      placeholder="Nhập họ và tên (ví dụ: Nguyễn Văn A)"
+                      required
+                      className="w-full h-12 pl-11 pr-4 rounded-xl bg-surface-container-low text-on-surface text-body-md outline-none transition-all placeholder:text-outline focus:bg-surface-container-lowest focus:shadow-[0_0_0_2px_#0050c8]"
                     />
-                  </svg>
-                  <span className="sr-only">Sign up with Apple</span>
-                </Button>
-                <Button variant="outline" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                      d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                      fill="currentColor"
+                  </div>
+                </div>
+
+                {/* 2. Số điện thoại */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md text-on-surface" htmlFor="phone">
+                    Số điện thoại <span className="text-error font-bold">*</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {/* +84 prefix pill */}
+                    <div className="h-12 px-3.5 rounded-xl bg-surface-container-high flex items-center gap-1.5 shrink-0 select-none">
+                      <span className="text-body-sm text-label-md text-on-surface flex items-center gap-1">
+                        🇻🇳 +84
+                      </span>
+                      <span className="material-symbols-outlined text-outline text-[16px]">arrow_drop_down</span>
+                    </div>
+                    <input
+                      id="phone"
+                      type="tel"
+                      maxLength={10}
+                      value={form.phone}
+                      onChange={set("phone")}
+                      placeholder="912 345 678"
+                      required
+                      className="w-full h-12 px-4 rounded-xl bg-surface-container-low text-on-surface text-body-md outline-none transition-all placeholder:text-outline focus:bg-surface-container-lowest focus:shadow-[0_0_0_2px_#0050c8]"
                     />
-                  </svg>
-                  <span className="sr-only">Sign up with Google</span>
-                </Button>
-                <Button variant="outline" type="button">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                      d="M6.915 4.03c-1.968 0-3.683 1.28-4.871 3.113C.704 9.208 0 11.883 0 14.449c0 .706.07 1.369.21 1.973a6.624 6.624 0 0 0 .265.86 5.297 5.297 0 0 0 .371.761c.696 1.159 1.818 1.927 3.593 1.927 1.497 0 2.633-.671 3.965-2.444.76-1.012 1.144-1.626 2.663-4.32l.756-1.339.186-.325c.061.1.121.196.183.3l2.152 3.595c.724 1.21 1.665 2.556 2.47 3.314 1.046.987 1.992 1.22 3.06 1.22 1.075 0 1.876-.355 2.455-.843a3.743 3.743 0 0 0 .81-.973c.542-.939.861-2.127.861-3.745 0-2.72-.681-5.357-2.084-7.45-1.282-1.912-2.957-2.93-4.716-2.93-1.047 0-2.088.467-3.053 1.308-.652.57-1.257 1.29-1.82 2.05-.69-.875-1.335-1.547-1.958-2.056-1.182-.966-2.315-1.303-3.454-1.303zm10.16 2.053c1.147 0 2.188.758 2.992 1.999 1.132 1.748 1.647 4.195 1.647 6.4 0 1.548-.368 2.9-1.839 2.9-.58 0-1.027-.23-1.664-1.004-.496-.601-1.343-1.878-2.832-4.358l-.617-1.028a44.908 44.908 0 0 0-1.255-1.98c.07-.109.141-.224.211-.327 1.12-1.667 2.118-2.602 3.358-2.602zm-10.201.553c1.265 0 2.058.791 2.675 1.446.307.327.737.871 1.234 1.579l-1.02 1.566c-.757 1.163-1.882 3.017-2.837 4.338-1.191 1.649-1.81 1.817-2.486 1.817-.524 0-1.038-.237-1.383-.794-.263-.426-.464-1.13-.464-2.046 0-2.221.63-4.535 1.66-6.088.454-.687.964-1.226 1.533-1.533a2.264 2.264 0 0 1 1.088-.285z"
-                      fill="currentColor"
+                  </div>
+                </div>
+
+                {/* 3. Email */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md text-on-surface" htmlFor="email">Email</label>
+                  <div className="relative flex items-center">
+                    <span className="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[20px] pointer-events-none">mail</span>
+                    <input
+                      id="email"
+                      type="email"
+                      value={form.email}
+                      onChange={set("email")}
+                      placeholder="Nhập email của bạn (ví dụ: ten@domain.com)"
+                      className="w-full h-12 pl-11 pr-4 rounded-xl bg-surface-container-low text-on-surface text-body-md outline-none transition-all placeholder:text-outline focus:bg-surface-container-lowest focus:shadow-[0_0_0_2px_#0050c8]"
                     />
-                  </svg>
-                  <span className="sr-only">Sign up with Meta</span>
-                </Button>
-              </Field>
-              <FieldDescription className="text-center">
-                Already have an account? <a href="#">Sign in</a>
-              </FieldDescription>
-            </FieldGroup>
-          </form>
-          <div className="relative hidden bg-muted md:block">
-            <img
-              src="/placeholder.svg"
-              alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-            />
+                  </div>
+                </div>
+
+                {/* 4. Mật khẩu */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md text-on-surface" htmlFor="password">
+                    Mật khẩu <span className="text-error font-bold">*</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <span className="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[20px] pointer-events-none">lock</span>
+                    <input
+                      id="password"
+                      type={showPw ? "text" : "password"}
+                      value={form.password}
+                      onChange={set("password")}
+                      placeholder="Nhập mật khẩu an toàn"
+                      required
+                      className="w-full h-12 pl-11 pr-11 rounded-xl bg-surface-container-low text-on-surface text-body-md outline-none transition-all placeholder:text-outline focus:bg-surface-container-lowest focus:shadow-[0_0_0_2px_#0050c8]"
+                    />
+                    <button type="button" aria-label="Hiện mật khẩu"
+                      onClick={() => setShowPw(!showPw)}
+                      className="absolute right-3 text-on-surface-variant hover:text-primary transition-colors p-1">
+                      <span className="material-symbols-outlined text-[20px]">
+                        {showPw ? "visibility_off" : "visibility"}
+                      </span>
+                    </button>
+                  </div>
+                  <p className="text-body-sm text-on-surface-variant flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[15px] text-tertiary">info</span>
+                    <span>Tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường và chữ số.</span>
+                  </p>
+                </div>
+
+                {/* 5. Xác nhận mật khẩu */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-label-md text-on-surface" htmlFor="confirmPassword">
+                    Xác nhận mật khẩu <span className="text-error font-bold">*</span>
+                  </label>
+                  <div className="relative flex items-center">
+                    <span className="material-symbols-outlined absolute left-3.5 text-on-surface-variant text-[20px] pointer-events-none">lock_reset</span>
+                    <input
+                      id="confirmPassword"
+                      type={showCPw ? "text" : "password"}
+                      value={form.confirmPassword}
+                      onChange={set("confirmPassword")}
+                      placeholder="Nhập lại mật khẩu vừa tạo"
+                      required
+                      className="w-full h-12 pl-11 pr-11 rounded-xl bg-surface-container-low text-on-surface text-body-md outline-none transition-all placeholder:text-outline focus:bg-surface-container-lowest focus:shadow-[0_0_0_2px_#0050c8]"
+                    />
+                    <button type="button" aria-label="Hiện mật khẩu xác nhận"
+                      onClick={() => setShowCPw(!showCPw)}
+                      className="absolute right-3 text-on-surface-variant hover:text-primary transition-colors p-1">
+                      <span className="material-symbols-outlined text-[20px]">
+                        {showCPw ? "visibility_off" : "visibility"}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 6. Terms */}
+                <div className="flex items-start gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="termsCheck"
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    required
+                    className="w-5 h-5 rounded text-primary focus:ring-primary accent-primary cursor-pointer mt-0.5"
+                  />
+                  <label htmlFor="termsCheck" className="text-body-sm text-on-surface-variant cursor-pointer select-none">
+                    Tôi đồng ý với{" "}
+                    <Link to="/terms" className="text-primary font-semibold hover:underline">Điều khoản dịch vụ</Link>{" "}
+                    và{" "}
+                    <Link to="/privacy" className="text-primary font-semibold hover:underline">Chính sách bảo mật</Link>{" "}
+                    của GoRide <span className="text-error font-bold">*</span>
+                  </label>
+                </div>
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-12 rounded-xl bg-primary text-on-primary text-label-lg font-semibold flex items-center justify-center gap-2 shadow-md transition-all hover:bg-primary-container active:scale-[0.99] disabled:opacity-60"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-on-primary" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor" />
+                      </svg>
+                      <span>Đang kết nối hệ thống GoRide...</span>
+                    </>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <span>Tạo tài khoản</span>
+                      <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </span>
+                  )}
+                </button>
+              </form>
+
+              {/* Switch to login */}
+              <div className="mt-6 text-center text-body-md text-on-surface-variant">
+                Đã có tài khoản GoRide?{" "}
+                <Link
+                  to="/login"
+                  className="text-primary font-semibold hover:underline ml-1 inline-flex items-center gap-0.5"
+                >
+                  Đăng nhập ngay
+                  <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                </Link>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-      <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
-      </FieldDescription>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="w-full mt-6 px-4 pb-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="text-body-sm text-on-surface-variant">© 2025 GoRide Technology Platform. All rights reserved.</p>
+          <div className="flex items-center gap-4 text-body-sm text-on-surface-variant">
+            <Link to="/terms" className="hover:text-primary transition-colors">Điều khoản &amp; Dịch vụ</Link>
+            <span className="w-1 h-1 rounded-full bg-outline" />
+            <Link to="/privacy" className="hover:text-primary transition-colors">Bảo mật thông tin</Link>
+            <span className="w-1 h-1 rounded-full bg-outline" />
+            <Link to="/support" className="hover:text-primary transition-colors">Trung tâm hỗ trợ</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

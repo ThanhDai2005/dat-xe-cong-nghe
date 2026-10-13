@@ -1,313 +1,394 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { cn } from "cn";
-import { Eye, EyeOff, Mail, Lock, Phone } from "lucide-react";
+import { toast } from "sonner";
+import { login, sendPhoneOtp, saveTokens } from "@/services/auth.service";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+type Mode = "password" | "otp";
 
-export const LoginForm = ({
-  className,
-  ...props
-}: React.ComponentProps<"div">) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
+export const LoginForm = ({ className }: React.ComponentProps<"div">) => {
+  const navigate = useNavigate();
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+  const [mode, setMode] = useState<Mode>("password");
+  const [showPw, setShowPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Password mode state
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+
+  // OTP mode state
+  const [phone, setPhone] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpSessionId, setOtpSessionId] = useState("");
+
+  // ── Password login ────────────────────────────────────────────────
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await login({ identifier, password, clientRole: "CUSTOMER" }) as unknown as Record<string, unknown>;
+      // Hỗ trợ cả 2 cấu trúc: { data: { tokens } } hoặc { tokens }
+      const tokens = (res as { data?: { tokens?: unknown } })?.data?.tokens
+                  || (res as { tokens?: unknown })?.tokens;
+      if (tokens) saveTokens(tokens as Parameters<typeof saveTokens>[0]);
+      toast.success("Đăng nhập thành công!");
+      navigate("/");
+    } catch (err: unknown) {
+      const e = err as { message?: string; error?: string };
+      toast.error(e?.message || e?.error || "Thông tin đăng nhập không chính xác");
+    } finally { setLoading(false); }
+  };
+
+  // ── OTP login ─────────────────────────────────────────────────────
+  const handleSendOtp = async () => {
+    if (!phone) { toast.error("Vui lòng nhập số điện thoại"); return; }
+    setLoading(true);
+    try {
+      const res = await sendPhoneOtp({ phone, purpose: "login", clientRole: "CUSTOMER" });
+      setOtpSessionId(res.data?.otpSessionId || "");
+      setOtpSent(true);
+      toast.success("Đã gửi mã OTP!");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message || "Gửi OTP thất bại");
+    } finally { setLoading(false); }
+  };
+
+  const handleOtpVerify = async () => {
+    if (otpCode.length < 6) { toast.error("Nhập đủ 6 chữ số OTP"); return; }
+    setLoading(true);
+    try {
+      const res = await login({ identifier: phone, otpCode, otpSessionId, authMethod: "OTP", clientRole: "CUSTOMER" }) as unknown as Record<string, unknown>;
+      const tokens = (res as { data?: { tokens?: unknown } })?.data?.tokens
+                  || (res as { tokens?: unknown })?.tokens;
+      if (tokens) saveTokens(tokens as Parameters<typeof saveTokens>[0]);
+      toast.success("Đăng nhập thành công!");
+      navigate("/");
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      toast.error(e?.message || "Mã OTP không đúng hoặc đã hết hạn");
+    } finally { setLoading(false); }
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card className="overflow-hidden p-0 shadow-[0_20px_40px_-12px_rgba(15,23,42,0.08),0_1px_3px_rgba(15,23,42,0.04)] border-slate-200">
-        <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-8 md:p-10">
-            <FieldGroup>
-              {/* Header */}
-              <div className="flex flex-col items-center gap-3 text-center mb-2">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0050c8] to-[#1d68f2] flex items-center justify-center text-white shadow-lg shadow-blue-500/25">
-                  <svg
-                    className="w-8 h-8"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
-                </div>
-                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-                  Chào mừng trở lại
-                </h1>
-                <p className="text-base text-slate-500 max-w-sm">
-                  Đăng nhập để tiếp tục đặt xe và quản lý chuyến đi của bạn
-                </p>
-              </div>
+    <div className={cn("flex flex-col w-full", className)}>
+      {/* Ambient radial background */}
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(64,194,253,0.18),rgba(250,248,255,0))] opacity-90" />
 
-              {/* Login Method Toggle */}
-              <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setLoginMethod("email")}
-                  className={cn(
-                    "flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all",
-                    loginMethod === "email"
-                      ? "bg-white text-[#0050c8] shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
-                  )}
-                >
-                  <Mail className="w-4 h-4 inline-block mr-2" />
-                  Email
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLoginMethod("phone")}
-                  className={cn(
-                    "flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all",
-                    loginMethod === "phone"
-                      ? "bg-white text-[#0050c8] shadow-sm"
-                      : "text-slate-600 hover:text-slate-900"
-                  )}
-                >
-                  <Phone className="w-4 h-4 inline-block mr-2" />
-                  Số điện thoại
-                </button>
-              </div>
+      <div className="flex flex-col w-full items-center justify-center max-w-6xl mx-auto my-auto">
+        {/* Main Split Card */}
+        <div className="w-full bg-surface-container-lowest rounded-2xl shadow-[0_20px_40px_-12px_rgba(15,23,42,0.08),0_1px_3px_rgba(15,23,42,0.04)] overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[660px]">
 
-              {/* Email/Phone Field */}
-              {loginMethod === "email" ? (
-                <Field>
-                  <FieldLabel htmlFor="email" className="text-slate-700 font-semibold">
-                    Email
-                  </FieldLabel>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="vidu@email.com"
-                      className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white focus:border-[#0050c8] focus:ring-4 focus:ring-blue-500/10 rounded-xl"
-                      required
-                    />
-                  </div>
-                </Field>
-              ) : (
-                <Field>
-                  <FieldLabel htmlFor="phone" className="text-slate-700 font-semibold">
-                    Số điện thoại
-                  </FieldLabel>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="0912 345 678"
-                      className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white focus:border-[#0050c8] focus:ring-4 focus:ring-blue-500/10 rounded-xl"
-                      required
-                    />
-                  </div>
-                </Field>
-              )}
+          {/* ── LEFT PANEL ── */}
+          <div
+            className="lg:col-span-5 p-9 flex flex-col justify-between relative overflow-hidden text-white"
+            style={{ background: "linear-gradient(150deg, rgb(9,64,153) 0%, rgb(29,104,242) 60%, rgb(6,43,105) 100%)" }}
+          >
+            {/* Ambient blobs */}
+            <div className="absolute -top-16 -left-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-20 -right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none" />
 
-              {/* Password Field */}
-              <Field>
-                <div className="flex items-center justify-between">
-                  <FieldLabel htmlFor="password" className="text-slate-700 font-semibold">
-                    Mật khẩu
-                  </FieldLabel>
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-[#0050c8] hover:text-[#0040a2] font-medium transition-colors"
-                  >
-                    Quên mật khẩu?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Nhập mật khẩu"
-                    className="pl-10 pr-12 h-12 bg-slate-50 border-slate-200 focus:bg-white focus:border-[#0050c8] focus:ring-4 focus:ring-blue-500/10 rounded-xl"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={togglePasswordVisibility}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                    aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              </Field>
-
-              {/* Remember Me */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  className="w-4 h-4 rounded border-slate-300 text-[#0050c8] focus:ring-[#0050c8] focus:ring-offset-0"
-                />
-                <label
-                  htmlFor="remember"
-                  className="text-sm text-slate-600 cursor-pointer select-none"
-                >
-                  Ghi nhớ đăng nhập
-                </label>
-              </div>
-
-              {/* Submit Button */}
-              <Field>
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-[#0050c8] hover:bg-[#0040a2] active:bg-[#003580] text-white font-semibold text-base rounded-xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all"
-                >
-                  Đăng nhập
-                  <svg
-                    className="w-5 h-5 ml-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 7l5 5m0 0l-5 5m5-5H6"
-                    />
-                  </svg>
-                </Button>
-              </Field>
-
-              <FieldSeparator className="*:data-[slot=field-separator-content]:bg-white text-slate-500">
-                Hoặc đăng nhập với
-              </FieldSeparator>
-
-              {/* Social Login */}
-              <Field className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="h-12 border-slate-200 hover:border-[#0050c8] hover:bg-blue-50 rounded-xl transition-all"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  <span className="ml-2 font-medium">Google</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="h-12 border-slate-200 hover:border-[#0050c8] hover:bg-blue-50 rounded-xl transition-all"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  <span className="ml-2 font-medium">Facebook</span>
-                </Button>
-              </Field>
-
-              <FieldDescription className="text-center text-slate-600">
-                Chưa có tài khoản?{" "}
-                <Link
-                  to="/register"
-                  className="text-[#0050c8] hover:text-[#0040a2] font-semibold transition-colors"
-                >
-                  Đăng ký ngay
-                </Link>
-              </FieldDescription>
-            </FieldGroup>
-          </form>
-
-          {/* Right Side Image */}
-          <div className="relative hidden bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 md:flex items-center justify-center p-10">
-            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
-            <div className="relative text-center space-y-6 max-w-md">
-              <div className="w-32 h-32 mx-auto bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl shadow-blue-500/20 flex items-center justify-center">
-                <svg
-                  className="w-20 h-20 text-[#0050c8]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-3xl font-bold text-slate-900">
-                Di chuyển an toàn
+            {/* Top slogan */}
+            <div className="relative z-10">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-sm shadow-sm">
+                🚗 DỊCH VỤ GỌI XE CÔNG NGHỆ GORIDE
+              </span>
+              <h2 className="text-3xl lg:text-4xl text-white leading-tight tracking-tight mt-4 mb-3 font-bold"
+                style={{ textShadow: "0 2px 4px rgba(0,0,0,0.15)" }}>
+                Kết nối chuyến đi an toàn &amp; minh bạch.
               </h2>
-              <p className="text-lg text-slate-700 leading-relaxed">
-                Kết nối với hàng ngàn tài xế chuyên nghiệp. Đặt xe nhanh chóng,
-                di chuyển an toàn, giá cả minh bạch.
+              <p className="text-body-md text-white/90 max-w-sm">
+                Nền tảng di chuyển công nghệ tiện lợi, chuẩn xác và tin cậy hàng đầu Việt Nam.
               </p>
-              <div className="flex items-center justify-center gap-6 pt-4">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-[#0050c8]">50K+</div>
-                  <div className="text-sm text-slate-600 mt-1">Chuyến đi</div>
+            </div>
+
+            {/* Illustration */}
+            <div className="relative z-10 my-auto py-2 flex items-center justify-center">
+              <img
+                src="https://lh3.googleusercontent.com/aida/AEtjO1WlwmesPy8TxrP4mpAWxg7fhMhSkRncFbRDlERUlsWDaW-bqtFD8iGGA0ZFvmJhIhA9D4JF1j58-CRSkKadwU_7O4Uya8OP8dv9amgwyZ5G-YrbJUZf8oVNx0Agbazm54BQnQYRJb2U3Ti5jQYtFapEUx36N4S1jYKmF3mcPEFWU3O60-nm30W--xb4wAL1nU15gcAU4zKrwBCl4EC2GKujZTBIB1oCCf5p1r3PoXnRZ-hWw7gZBf4EyA"
+                alt="Minh họa GoRide"
+                loading="lazy"
+                decoding="async"
+                className="w-60 h-60 object-contain mx-auto my-6 drop-shadow-xl"
+              />
+            </div>
+
+            {/* Bottom trust badge */}
+            <div className="relative z-10 pt-2">
+              <div
+                className="p-4 rounded-xl backdrop-blur-md shadow-sm flex items-center justify-between text-white"
+                style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)" }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                  </div>
+                  <div>
+                    <p className="text-headline-sm font-bold text-white leading-tight">
+                      ⭐ 4.9/5 • Hơn 2.5 triệu chuyến đi thành công
+                    </p>
+                    <p className="text-label-sm text-white/90 mt-0.5">Đối tác tin cậy tại 63 tỉnh thành</p>
+                  </div>
                 </div>
-                <div className="w-px h-12 bg-slate-300"></div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-[#0050c8]">4.8★</div>
-                  <div className="text-sm text-slate-600 mt-1">Đánh giá</div>
-                </div>
-                <div className="w-px h-12 bg-slate-300"></div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-[#0050c8]">24/7</div>
-                  <div className="text-sm text-slate-600 mt-1">Hỗ trợ</div>
+                <div className="hidden sm:flex -space-x-2">
+                  {["HN", "SG", "ĐN"].map((city, i) => (
+                    <span key={city}
+                      className={cn("w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold shadow-sm border border-white/30",
+                        i === 0 ? "bg-secondary" : i === 1 ? "bg-primary" : "bg-tertiary")}>
+                      {city}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      <FieldDescription className="text-center text-slate-600 max-w-2xl mx-auto">
-        Bằng việc đăng nhập, bạn đồng ý với{" "}
-        <Link to="/terms" className="text-[#0050c8] hover:underline font-medium">
-          Điều khoản dịch vụ
-        </Link>{" "}
-        và{" "}
-        <Link to="/privacy" className="text-[#0050c8] hover:underline font-medium">
-          Chính sách bảo mật
-        </Link>{" "}
-        của GoRide.
-      </FieldDescription>
+          {/* ── RIGHT PANEL ── */}
+          <div className="lg:col-span-7 p-6 sm:p-9 flex flex-col justify-between bg-surface-container-lowest">
+            <div className="max-w-md w-full mx-auto my-auto">
+
+              {/* Header */}
+              <div className="mb-6">
+                <h1 className="text-headline-lg text-on-surface font-bold tracking-tight mb-1">
+                  Chào mừng bạn trở lại
+                </h1>
+                <p className="text-body-md text-on-surface-variant">
+                  Đăng nhập vào tài khoản GoRide để quản lý và theo dõi chuyến đi của bạn.
+                </p>
+              </div>
+
+              {/* Tab switcher */}
+              <div className="flex p-1 bg-surface-container-low rounded-xl mb-6 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setMode("password")}
+                  className={cn(
+                    "flex-1 py-2 px-2 rounded-lg text-label-md font-semibold flex items-center justify-center gap-1 transition-all",
+                    mode === "password"
+                      ? "bg-surface-container-lowest text-primary shadow-sm"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  )}
+                >
+                  <span className="material-symbols-outlined text-[18px]">key</span>
+                  <span>Mật khẩu</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMode("otp"); setOtpSent(false); setOtpCode(""); }}
+                  className={cn(
+                    "flex-1 py-2 px-2 rounded-lg text-label-md font-medium flex items-center justify-center gap-1 transition-all",
+                    mode === "otp"
+                      ? "bg-surface-container-lowest text-primary shadow-sm font-semibold"
+                      : "text-on-surface-variant hover:text-on-surface"
+                  )}
+                >
+                  <span className="material-symbols-outlined text-[18px]">sms</span>
+                  <span>Mã OTP qua SMS</span>
+                </button>
+              </div>
+
+              {/* ── PASSWORD MODE ── */}
+              {mode === "password" && (
+                <form className="space-y-4" onSubmit={handlePasswordSubmit}>
+                  {/* Identifier */}
+                  <div>
+                    <label className="block text-label-md text-on-surface font-medium mb-1.5" htmlFor="identifier">
+                      Email hoặc số điện thoại <span className="text-error font-bold">*</span>
+                    </label>
+                    <div className="relative flex items-center">
+                      <span className="material-symbols-outlined absolute left-3.5 text-on-surface-variant pointer-events-none text-[20px]">alternate_email</span>
+                      <input
+                        id="identifier"
+                        type="text"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        placeholder="0912345678 hoặc customer@email.com"
+                        required
+                        className="w-full h-12 pl-11 pr-4 bg-surface-container-low rounded-xl text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:shadow-[0_0_0_4px_rgba(29,104,242,0.12)] transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-label-md text-on-surface font-medium" htmlFor="login-password">
+                        Mật khẩu <span className="text-error font-bold">*</span>
+                      </label>
+                      <Link to="/forgot-password" className="text-label-md text-primary hover:underline transition-colors">
+                        Quên mật khẩu?
+                      </Link>
+                    </div>
+                    <div className="relative flex items-center">
+                      <span className="material-symbols-outlined absolute left-3.5 text-on-surface-variant pointer-events-none text-[20px]">lock</span>
+                      <input
+                        id="login-password"
+                        type={showPw ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Nhập mật khẩu của bạn"
+                        required
+                        className="w-full h-12 pl-11 pr-12 bg-surface-container-low rounded-xl text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:shadow-[0_0_0_4px_rgba(29,104,242,0.12)] transition-all"
+                      />
+                      <button type="button" aria-label="Hiển thị hoặc ẩn mật khẩu"
+                        onClick={() => setShowPw(!showPw)}
+                        className="absolute right-3 text-on-surface-variant hover:text-on-surface p-1 rounded-lg focus:outline-none">
+                        <span className="material-symbols-outlined text-[20px]">
+                          {showPw ? "visibility_off" : "visibility"}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Remember me */}
+                  <div className="flex items-center justify-between pt-0.5">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-4 h-4 rounded text-primary focus:ring-primary focus:ring-offset-0 bg-surface-container-low accent-primary cursor-pointer" />
+                      <span className="text-body-sm text-on-surface-variant">Ghi nhớ đăng nhập trên thiết bị này</span>
+                    </label>
+                  </div>
+
+                  {/* Submit */}
+                  <button type="submit" disabled={loading}
+                    className="w-full h-12 rounded-xl bg-primary hover:bg-primary-container active:scale-[0.99] text-on-primary text-label-lg font-medium flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-60">
+                    {loading ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-on-primary" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" fill="currentColor" />
+                        </svg>
+                        <span>Đang kết nối GoRide...</span>
+                      </>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <span>Đăng nhập</span>
+                        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                      </span>
+                    )}
+                  </button>
+                </form>
+              )}
+
+              {/* ── OTP MODE ── */}
+              {mode === "otp" && (
+                <div className="space-y-4">
+                  {/* Phone input */}
+                  <div>
+                    <label className="block text-label-md text-on-surface font-medium mb-1.5" htmlFor="otp-phone">
+                      Số điện thoại di động <span className="text-error font-bold">*</span>
+                    </label>
+                    <div className="relative flex items-center">
+                      <div className="absolute left-3.5 flex items-center gap-1 text-on-surface-variant pointer-events-none select-none">
+                        <span className="text-label-md font-semibold text-primary">+84</span>
+                        <span className="h-4 w-[1px] bg-outline-variant inline-block ml-1" />
+                      </div>
+                      <input
+                        id="otp-phone" type="tel"
+                        value={phone} onChange={(e) => setPhone(e.target.value)}
+                        placeholder="912 345 678"
+                        className="w-full h-12 pl-16 pr-4 bg-surface-container-low rounded-xl text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:shadow-[0_0_0_4px_rgba(29,104,242,0.12)] transition-all"
+                      />
+                    </div>
+                    <p className="text-body-sm text-on-surface-variant mt-1.5 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[16px] text-tertiary">sms</span>
+                      Mã xác thực 6 chữ số sẽ được gửi qua tin nhắn SMS tới số này.
+                    </p>
+                  </div>
+
+                  {/* OTP field after send */}
+                  {otpSent && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-label-md text-on-surface font-medium" htmlFor="otp-input">
+                          Mã OTP (6 số) <span className="text-error font-bold">*</span>
+                        </label>
+                        <button type="button" onClick={handleSendOtp} className="text-label-md text-primary hover:underline">
+                          Gửi lại mã
+                        </button>
+                      </div>
+                      <div className="relative flex items-center">
+                        <span className="material-symbols-outlined absolute left-3.5 text-on-surface-variant pointer-events-none text-[20px]">pin</span>
+                        <input
+                          id="otp-input" type="text" inputMode="numeric" maxLength={6}
+                          value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                          placeholder="______"
+                          className="w-full h-12 pl-11 pr-4 bg-surface-container-low rounded-xl text-body-md text-on-surface placeholder:text-outline tracking-widest font-semibold focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:shadow-[0_0_0_4px_rgba(29,104,242,0.12)] transition-all"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action buttons */}
+                  {!otpSent ? (
+                    <button type="button" onClick={handleSendOtp} disabled={loading}
+                      className="w-full h-12 rounded-xl bg-primary hover:bg-primary-container active:scale-[0.99] text-on-primary text-label-lg font-medium flex items-center justify-center gap-2 shadow-md transition-all disabled:opacity-60">
+                      <span className="material-symbols-outlined text-[20px]">send_to_mobile</span>
+                      <span>{loading ? "Đang gửi..." : "Gửi mã xác thực SMS OTP"}</span>
+                    </button>
+                  ) : (
+                    <button type="button" onClick={handleOtpVerify} disabled={loading}
+                      className="w-full h-12 rounded-xl bg-primary hover:bg-primary-container active:scale-[0.99] text-on-primary text-label-lg font-medium flex items-center justify-center gap-2 shadow-md transition-all disabled:opacity-60">
+                      <span className="material-symbols-outlined text-[20px]">verified_user</span>
+                      <span>{loading ? "Đang xác thực..." : "Xác thực OTP & Đăng nhập"}</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Divider */}
+              <div className="relative my-5 text-center">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full bg-surface-container-high h-[1px]" />
+                </div>
+                <span className="relative px-3 bg-surface-container-lowest text-label-sm text-outline uppercase tracking-wider">
+                  hoặc tiếp tục với
+                </span>
+              </div>
+
+              {/* Google OAuth */}
+              <button type="button"
+                className="w-full h-12 rounded-xl bg-surface-container-lowest hover:bg-surface-container-low active:scale-[0.99] shadow-sm flex items-center justify-center gap-3 text-label-lg text-on-surface transition-all cursor-pointer border border-surface-container-high">
+                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" fill="#FBBC05" />
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+                </svg>
+                <span>Đăng nhập với Google</span>
+              </button>
+
+              {/* Register link */}
+              <p className="text-center mt-5 text-body-md text-on-surface-variant">
+                Chưa có tài khoản?
+                <Link to="/register" className="text-label-lg text-primary hover:underline font-semibold ml-1">
+                  Đăng ký ngay
+                </Link>
+              </p>
+
+              {/* Trust badge */}
+              <div className="mt-4 p-3 rounded-xl bg-surface-container-low flex items-center justify-center gap-2 text-center">
+                <span className="material-symbols-outlined text-[16px] text-tertiary">lock</span>
+                <span className="text-body-sm text-on-surface-variant">
+                  Thông tin tài khoản được mã hóa và bảo mật theo chuẩn an toàn GoRide.
+                </span>
+              </div>
+
+              {/* Sub-footer links */}
+              <div className="pt-4 mt-4 flex items-center justify-between text-body-sm text-outline">
+                <Link to="/privacy" className="hover:text-primary transition-colors">Chính sách bảo mật</Link>
+                <span className="inline-block w-1 h-1 rounded-full bg-outline" />
+                <Link to="/terms" className="hover:text-primary transition-colors">Điều khoản sử dụng</Link>
+                <span className="inline-block w-1 h-1 rounded-full bg-outline" />
+                <Link to="/support" className="hover:text-primary transition-colors">Trợ giúp</Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
