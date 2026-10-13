@@ -3,6 +3,12 @@ node_modules/
 !.env.example
 jsconfig.json
 
+# Backend (Node.js)
+be/node_modules/
+be/.env
+!be/.env.example
+!be/certs/ca.pem
+
 # REACT
 # Logs
 logs
