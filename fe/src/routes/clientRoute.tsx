@@ -3,6 +3,7 @@ import HomePage from "@/pages/client/HomePage";
 import RegisterPage from "@/pages/client/RegisterPage";
 import LoginPage from "@/pages/client/LoginPage";
 import VerifyOtp from "@/pages/client/VerifyOtp";
+import CompleteProfile from "@/pages/client/CompleteProfile";
 import ForgotPassword from "@/pages/client/ForgotPassword";
 import VerifyPasswordOtp from "@/pages/client/VerifyPasswordOTP";
 import ResetPassword from "@/pages/client/ResetPassword";
@@ -10,43 +11,18 @@ import ResetPassword from "@/pages/client/ResetPassword";
 const clientRoute = {
   path: "/",
   children: [
-    {
-      path: "register",
-      element: <RegisterPage />,
-    },
-    {
-      path: "login",
-      element: <LoginPage />,
-    },
-    {
-      path: "verify-otp",
-      element: <VerifyOtp />,
-    },
-    {
-      path: "forgot-password",
-      element: <ForgotPassword />,
-    },
-    {
-      path: "verify-password-otp",
-      element: <VerifyPasswordOtp />,
-    },
-    {
-      path: "reset-password",
-      element: <ResetPassword />,
-    },
+    { path: "register", element: <RegisterPage /> },
+    { path: "login", element: <LoginPage /> },
+    { path: "verify-otp", element: <VerifyOtp /> },
+    { path: "complete-profile", element: <CompleteProfile /> },
+    { path: "forgot-password", element: <ForgotPassword /> },
+    { path: "verify-password-otp", element: <VerifyPasswordOtp /> },
+    { path: "reset-password", element: <ResetPassword /> },
     {
       element: <ClientLayout />,
       children: [
-        {
-          index: true,
-          element: <HomePage />,
-        },
-        // {
-        //     element: <PrivateRouter />,
-        //     children: [
-
-        //     ],
-        // },
+        { index: true, element: <HomePage /> },
+        // { element: <PrivateRouter />, children: [] },
       ],
     },
   ],
