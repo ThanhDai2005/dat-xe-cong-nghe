@@ -1,36 +1,55 @@
 import ClientLayout from "@/components/client/ClientLayout";
 import HomePage from "@/pages/client/HomePage";
-import SignInPage from "@/pages/client/SignInPage";
-import SignUpPage from "@/pages/client/SignUpPage";
-
+import RegisterPage from "@/pages/client/RegisterPage";
+import LoginPage from "@/pages/client/LoginPage";
+import VerifyOtp from "@/pages/client/VerifyOtp";
+import ForgotPassword from "@/pages/client/ForgotPassword";
+import VerifyPasswordOtp from "@/pages/client/VerifyPasswordOTP";
+import ResetPassword from "@/pages/client/ResetPassword";
 
 const clientRoute = {
-    path: "/",
-    children: [
+  path: "/",
+  children: [
+    {
+      path: "register",
+      element: <RegisterPage />,
+    },
+    {
+      path: "login",
+      element: <LoginPage />,
+    },
+    {
+      path: "verify-otp",
+      element: <VerifyOtp />,
+    },
+    {
+      path: "forgot-password",
+      element: <ForgotPassword />,
+    },
+    {
+      path: "verify-password-otp",
+      element: <VerifyPasswordOtp />,
+    },
+    {
+      path: "reset-password",
+      element: <ResetPassword />,
+    },
+    {
+      element: <ClientLayout />,
+      children: [
         {
-            path: "signup",
-            element: <SignUpPage />,
+          index: true,
+          element: <HomePage />,
         },
-        {
-            path: "signin",
-            element: <SignInPage />,
-        },
-        {
-            element: <ClientLayout />,
-            children: [
-                {
-                    index: true,
-                    element: <HomePage />,
-                },
-                // {
-                //     element: <PrivateRouter />,
-                //     children: [
+        // {
+        //     element: <PrivateRouter />,
+        //     children: [
 
-                //     ],
-                // },
-            ],
-        },
-    ],
+        //     ],
+        // },
+      ],
+    },
+  ],
 };
 
 export default clientRoute;

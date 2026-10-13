@@ -38,30 +38,30 @@ const Header = () => {
             Trang chủ
           </Link>
 
-          <a
-            href="#services"
+          <Link
+            to="/services"
             className="text-slate-600 hover:text-[#0050c8] font-medium text-sm lg:text-base transition-colors"
           >
             Dịch Vụ
-          </a>
-          <a
-            href="#fares"
+          </Link>
+          <Link
+            to="/fares"
             className="text-slate-600 hover:text-[#0050c8] font-medium text-sm lg:text-base transition-colors"
           >
             Bảng Giá
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            to="/support"
             className="text-slate-600 hover:text-[#0050c8] font-medium text-sm lg:text-base transition-colors"
           >
             Hỗ trợ
-          </a>
+          </Link>
         </nav>
 
         {/* User Action CTA Buttons - Desktop */}
         <div className="hidden sm:flex items-center gap-3 md:gap-4">
           <Link
-            to="/signin"
+            to="/login"
             className="inline-flex items-center gap-2 text-slate-700 hover:text-[#0050c8] font-medium text-sm lg:text-base px-3 py-2 rounded-lg transition-colors"
           >
             <svg
@@ -80,7 +80,7 @@ const Header = () => {
             Đăng nhập
           </Link>
           <Link
-            to="/signup"
+            to="/register"
             className="bg-[#0050c8] hover:bg-[#0040a2] active:bg-[#003580] text-white font-semibold text-sm lg:text-base px-4 md:px-5 py-2 md:py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:shadow-blue-500/30"
           >
             Đăng ký
@@ -141,14 +141,14 @@ const Header = () => {
           </a>
           <div className="pt-4 border-t border-slate-100 flex gap-2">
             <Link
-              to="/signin"
+              to="/login"
               className="w-1/2 py-2.5 text-center font-medium text-slate-700 border border-slate-200 rounded-xl"
               onClick={toggleMobileMenu}
             >
               Đăng nhập
             </Link>
             <Link
-              to="/signup"
+              to="/register"
               className="w-1/2 py-2.5 text-center font-medium text-white bg-[#0050c8] rounded-xl"
               onClick={toggleMobileMenu}
             >
