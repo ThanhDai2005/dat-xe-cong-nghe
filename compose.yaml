@@ -33,6 +33,7 @@ services:
 
   api:
     build: ./be
+    restart: on-failure
     env_file: ./be/.env.docker
     environment:
       NODE_ENV: development
