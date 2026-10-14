@@ -5,6 +5,7 @@ import { db } from "../database";
 import { redis } from "../redis";
 import { blockAccessToken, issueSession, revokeAllSessions, revokeSession, rotateSession, verifyAccessToken } from "./sessions";
 import { publicUser, type UserRow } from "./types";
+import { normalizeVnPhone } from "./validation";
 
 export const authRouter = Router();
 const loginSchema = z.object({
@@ -16,8 +17,8 @@ const refreshSchema = z.object({ userId: z.string().uuid(), familyId: z.string()
 
 async function getUser(identifier: string): Promise<UserRow | undefined> {
   const [rows] = await db.execute<UserRow[]>(
-    "SELECT id, full_name, email, phone, password_hash, role, status FROM users WHERE email = ? OR phone = ? LIMIT 1",
-    [identifier, identifier],
+    "SELECT id, full_name, email, phone, password_hash, role, status FROM users WHERE email = ? OR phone IN (?, ?) LIMIT 1",
+    [identifier.toLowerCase(), normalizeVnPhone(identifier) ?? identifier, identifier],
   );
   return rows[0];
 }
