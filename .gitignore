@@ -6,6 +6,7 @@ jsconfig.json
 # Backend (Node.js)
 be/node_modules/
 be/.env
+be/.env.docker
 !be/.env.example
 !be/certs/ca.pem
 
