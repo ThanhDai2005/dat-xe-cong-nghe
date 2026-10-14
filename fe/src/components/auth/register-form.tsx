@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { cn } from "cn";
 import { toast } from "sonner";
-import { register } from "@/services/auth.service";
+import { register, sendPhoneOtp } from "@/services/auth.service";
 
 export function RegisterForm({ className }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
@@ -22,6 +22,7 @@ export function RegisterForm({ className }: React.ComponentProps<"div">) {
     if (!agreed) { toast.error("Vui lòng đồng ý với điều khoản dịch vụ"); return; }
     if (form.password !== form.confirmPassword) { toast.error("Mật khẩu xác nhận không khớp"); return; }
     setLoading(true);
+    let accountCreated = false;
     try {
       await register({
         role: "CUSTOMER",
@@ -31,11 +32,16 @@ export function RegisterForm({ className }: React.ComponentProps<"div">) {
         password: form.password,
         confirmPassword: form.confirmPassword,
       });
+      accountCreated = true;
+      const otp = await sendPhoneOtp({ phone: form.phone, purpose: "register", clientRole: "CUSTOMER" });
       toast.success("Đăng ký thành công! Vui lòng xác thực số điện thoại.");
-      navigate("/verify-otp", { state: { phone: form.phone, purpose: "register" } });
+      navigate("/verify-otp", { state: { phone: form.phone, purpose: "register", otpSessionId: otp.data.otpSessionId } });
     } catch (err: unknown) {
       const e = err as { message?: string };
-      toast.error(e?.message || "Đăng ký thất bại, vui lòng thử lại");
+      if (accountCreated) {
+        toast.error("Đã tạo tài khoản nhưng chưa gửi được OTP. Hãy gửi lại mã ở bước tiếp theo.");
+        navigate("/verify-otp", { state: { phone: form.phone, purpose: "register" } });
+      } else toast.error(e?.message || "Đăng ký thất bại, vui lòng thử lại");
     } finally { setLoading(false); }
   };
 

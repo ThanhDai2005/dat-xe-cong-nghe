@@ -3,12 +3,12 @@ import { Router } from "express";
 import { z } from "zod";
 import { config } from "../config";
 import { redis } from "../redis";
-import { createOtp, hashOtp, maskPhone, type OtpPurpose, type OtpRecord } from "./otp-utils";
+import { createOtp, hashOtp, maskPhone, otpKey, type OtpPurpose, type OtpRecord } from "./otp-utils";
 import { sendSms } from "./sms";
 import { normalizeVnPhone } from "./validation";
+import { verifyOtpHandler } from "./otp-verify";
 
 export const otpRouter = Router();
-export const otpKey = (sessionId: string) => `auth:otp:${sessionId}`;
 const OTP_TTL_SECONDS = 5 * 60;
 
 const sendSchema = z.object({
@@ -39,3 +39,5 @@ otpRouter.post("/phone/otp/send", async (req, res) => {
   }
   res.json({ success: true, message: "Đã gửi OTP", data: { otpSessionId: sessionId, phoneMasked: maskPhone(phone), expiresInSeconds: OTP_TTL_SECONDS } });
 });
+
+otpRouter.post("/phone/otp/verify", verifyOtpHandler);

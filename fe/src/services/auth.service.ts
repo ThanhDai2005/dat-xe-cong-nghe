@@ -30,7 +30,11 @@ export const saveTokens = (tokens: AuthTokens) => {
 };
 
 export const getAccessToken = () => localStorage.getItem("accessToken") ?? undefined;
-export const clearTokens    = () => localStorage.removeItem("accessToken");
+export const clearTokens = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("familyId");
+};
 
 // ══════════════════════════════════════════════════════════════════════════
 //  /api/auth — Auth APIs

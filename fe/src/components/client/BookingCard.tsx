@@ -1,5 +1,5 @@
-import { useState, FormEvent } from "react";
-import { MapPin, Phone, ArrowRight, Check } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { MapPin, ArrowRight } from "lucide-react";
 
 const BookingCard = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<"4" | "7">("4");

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import { cn } from "cn";
 import { toast } from "sonner";
-import { verifyPhoneOtp, sendPhoneOtp } from "@/services/auth.service";
+import { verifyPhoneOtp, sendPhoneOtp, saveTokens } from "@/services/auth.service";
 
 export function VerifyOtpForm({ className }: React.ComponentProps<"div">) {
   const navigate = useNavigate();
@@ -12,8 +12,8 @@ export function VerifyOtpForm({ className }: React.ComponentProps<"div">) {
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
-  const [countdown, setCountdown] = useState(59);
-  const [canResend, setCanResend] = useState(false);
+  const [countdown, setCountdown] = useState(initSession ? 59 : 0);
+  const [canResend, setCanResend] = useState(!initSession);
   const [error, setError] = useState("");
   const [otpSessionId, setOtpSessionId] = useState(initSession);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -69,10 +69,12 @@ export function VerifyOtpForm({ className }: React.ComponentProps<"div">) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = otp.join("");
+    if (!otpSessionId) { setError("Vui lòng gửi mã OTP trước."); return; }
     if (code.length < 6) { setError("Vui lòng nhập đủ 6 chữ số mã OTP."); return; }
     setLoading(true);
     try {
-      await verifyPhoneOtp({ phone, otpCode: code, otpSessionId });
+      const result = await verifyPhoneOtp({ phone, otpCode: code, otpSessionId });
+      saveTokens(result.data.tokens);
       toast.success("Xác thực thành công!");
       if (purpose === "register") navigate("/");
       else navigate("/reset-password", { state: { phone, resetToken: otpSessionId } });

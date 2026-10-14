@@ -6,6 +6,7 @@ import { redis } from "../redis";
 import { blockAccessToken, issueSession, revokeAllSessions, revokeSession, rotateSession, verifyAccessToken } from "./sessions";
 import { publicUser, type UserRow } from "./types";
 import { normalizeVnPhone } from "./validation";
+import { verifyOtpHandler } from "./otp-verify";
 
 export const authRouter = Router();
 const loginSchema = z.object({
@@ -24,6 +25,11 @@ async function getUser(identifier: string): Promise<UserRow | undefined> {
 }
 
 const loginHandler: RequestHandler = async (req, res) => {
+  if (req.body?.authMethod === "OTP") {
+    req.body = { ...req.body, phone: req.body.identifier };
+    await verifyOtpHandler(req, res, () => undefined);
+    return;
+  }
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ success: false, message: "Thông tin đăng nhập không hợp lệ" }); return; }
   const { identifier, password, clientRole } = parsed.data;
