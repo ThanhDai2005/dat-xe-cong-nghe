@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { OAuth2Client } from "google-auth-library";
-import { verifyGoogleIdentity } from "./google-identity";
+import { verifyGoogleIdentity } from "../../src/auth/google-identity";
 
 test("SCRUM-37: verifies ID token for the configured audience and verified email", async () => {
   let received: unknown;

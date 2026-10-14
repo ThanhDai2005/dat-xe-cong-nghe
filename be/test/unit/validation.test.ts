@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { normalizeVnPhone, registerSchema } from "./validation";
+import { normalizeVnPhone, registerSchema } from "../../src/auth/validation";
 
 test("normalizes common Vietnamese mobile formats", () => {
   assert.equal(normalizeVnPhone("0912 345 678"), "+84912345678");

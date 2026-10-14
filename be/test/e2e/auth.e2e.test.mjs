@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const apiUrl = process.env.AUTH_TEST_API_URL ?? "http://localhost:3000";
 const mailpitUrl = process.env.AUTH_TEST_MAILPIT_URL ?? "http://localhost:8025";
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

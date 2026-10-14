@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { googleProfile } from "./google-profile";
+import { googleProfile } from "../../src/auth/google-profile";
 
 test("requires a verified email and stable Google subject", () => {
   assert.equal(googleProfile({ email: "a@example.com", email_verified: true }), null);

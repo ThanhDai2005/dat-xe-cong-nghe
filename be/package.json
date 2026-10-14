@@ -7,8 +7,9 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "migrate": "tsx src/scripts/migrate.ts",
-    "test": "npm run build && node --test \"dist/**/*.test.js\"",
-    "test:e2e": "node --test test/auth.e2e.test.mjs"
+    "build:test": "tsc -p tsconfig.test.json",
+    "test": "npm run build:test && node --test \"dist-test/test/unit/*.test.js\"",
+    "test:e2e": "node --test test/e2e/auth.e2e.test.mjs"
   },
   "keywords": [],
   "author": "",

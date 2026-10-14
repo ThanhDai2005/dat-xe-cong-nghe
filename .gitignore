@@ -5,6 +5,7 @@ jsconfig.json
 
 # Backend (Node.js)
 be/node_modules/
+be/dist-test/
 be/.env
 be/.env.docker
 !be/.env.example

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { deliverSms } from "./sms-adapter";
+import { deliverSms } from "../../src/auth/sms-adapter";
 
 test("SCRUM-42: HTTP SMS adapter sends a JSON request with configured credentials", async () => {
   let url: unknown;

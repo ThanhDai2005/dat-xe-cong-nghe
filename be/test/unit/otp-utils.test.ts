@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createOtp, hashOtp, maskPhone } from "./otp-utils";
+import { createOtp, hashOtp, maskPhone } from "../../src/auth/otp-utils";
 
 test("generates fixed-length numeric OTP and session-bound digest", () => {
   for (let index = 0; index < 100; index++) assert.match(createOtp(), /^\d{6}$/);
