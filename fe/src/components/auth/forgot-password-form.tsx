@@ -116,10 +116,6 @@ export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
                   </span>
                   <span>Quay lại đăng nhập</span>
                 </Link>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-label-sm text-on-surface-variant font-medium">
-                  <span className="w-2 h-2 rounded-full bg-tertiary" />
-                  Cổng khôi phục tự động
-                </span>
               </div>
 
               {/* Heading */}
@@ -158,9 +154,6 @@ export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
                     <label className="text-label-md text-on-surface font-semibold">
                       Kênh nhận mã xác thực (OTP)
                     </label>
-                    <span className="text-label-sm text-on-surface-variant hidden sm:inline">
-                      API: &#123; identifier, channel &#125;
-                    </span>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {/* SMS */}
@@ -168,9 +161,9 @@ export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
                       type="button"
                       onClick={() => setChannel("sms")}
                       className={cn(
-                        "flex items-center justify-between p-3.5 rounded-xl transition-all text-left focus:outline-none",
+                        "flex items-center justify-between p-3.5 rounded-xl transition-all text-left focus:outline-none cursor-pointer",
                         channel === "sms"
-                          ? "bg-primary-fixed text-on-primary-fixed"
+                          ? "bg-primary-fixed text-on-primary-fixed  border border-outline-variant"
                           : "bg-surface-container text-on-surface",
                       )}
                     >
@@ -217,9 +210,9 @@ export function ForgotPasswordForm({ className }: React.ComponentProps<"div">) {
                       type="button"
                       onClick={() => setChannel("email")}
                       className={cn(
-                        "flex items-center justify-between p-3.5 rounded-xl transition-all text-left focus:outline-none",
+                        "flex items-center justify-between p-3.5 rounded-xl transition-all text-left focus:outline-none cursor-pointer",
                         channel === "email"
-                          ? "bg-primary-fixed text-on-primary-fixed"
+                          ? "bg-primary-fixed text-on-primary-fixed  border border-outline-variant"
                           : "bg-surface-container text-on-surface",
                       )}
                     >

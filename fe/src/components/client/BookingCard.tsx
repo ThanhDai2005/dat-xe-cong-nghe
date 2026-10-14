@@ -75,7 +75,10 @@ const BookingCard = () => {
         </div>
 
         {/* Booking Form */}
-        <form className="mt-3 md:mt-3.5 space-y-3" onSubmit={handleBookingSubmit}>
+        <form
+          className="mt-3 md:mt-3.5 space-y-3"
+          onSubmit={handleBookingSubmit}
+        >
           {/* Pickup & Destination Container */}
           <div className="relative space-y-2.5">
             {/* Vertical Dotted Line */}

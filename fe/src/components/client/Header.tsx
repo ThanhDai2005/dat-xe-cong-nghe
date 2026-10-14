@@ -39,6 +39,13 @@ const Header = () => {
           </Link>
 
           <Link
+            to="/booking"
+            className="text-slate-600 hover:text-[#0050c8] font-medium text-sm lg:text-base transition-colors"
+          >
+            Đặt Xe
+          </Link>
+
+          <Link
             to="/services"
             className="text-slate-600 hover:text-[#0050c8] font-medium text-sm lg:text-base transition-colors"
           >

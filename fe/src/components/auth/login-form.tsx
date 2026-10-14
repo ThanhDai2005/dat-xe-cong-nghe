@@ -219,7 +219,7 @@ export const LoginForm = ({ className }: React.ComponentProps<"div">) => {
                   type="button"
                   onClick={() => setMode("password")}
                   className={cn(
-                    "flex-1 py-2 px-2 rounded-lg text-label-md font-semibold flex items-center justify-center gap-1 transition-all",
+                    "flex-1 py-2 px-2 rounded-lg text-label-md font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer",
                     mode === "password"
                       ? "bg-surface-container-lowest text-primary shadow-sm"
                       : "text-on-surface-variant hover:text-on-surface",
@@ -238,7 +238,7 @@ export const LoginForm = ({ className }: React.ComponentProps<"div">) => {
                     setOtpCode("");
                   }}
                   className={cn(
-                    "flex-1 py-2 px-2 rounded-lg text-label-md font-medium flex items-center justify-center gap-1 transition-all",
+                    "flex-1 py-2 px-2 rounded-lg text-label-md font-medium flex items-center justify-center gap-1 transition-all cursor-pointer",
                     mode === "otp"
                       ? "bg-surface-container-lowest text-primary shadow-sm font-semibold"
                       : "text-on-surface-variant hover:text-on-surface",
