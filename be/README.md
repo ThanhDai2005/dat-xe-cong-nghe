@@ -23,4 +23,4 @@ Authentication routes are available under both `/api/auth` (frontend compatibili
 
 `POST /v1/login` also accepts the existing frontend's OTP login payload. OTPs expire after five minutes, are single-use, and allow five failed attempts. New customer accounts become active on phone verification. Driver accounts remain pending approval and do not receive login tokens until active.
 
-Backend checks: `cd be; npm ci; npm test`. Frontend build: `cd fe; npm ci; npm run build`.
+Backend unit tests: `cd be; npm ci; npm test`. For API integration tests, first run `docker compose up -d --build` from this worktree's root, then `cd be; npm run test:e2e`. The integration suite creates uniquely named local test accounts, uses Mailpit and Docker's development SMS log, and does not need a real SMS provider. It tests malformed/unconfigured Google requests; a real successful Google sign-in still requires a configured client ID and genuine Google ID Token. Frontend build: `cd fe; npm ci; npm run build`.

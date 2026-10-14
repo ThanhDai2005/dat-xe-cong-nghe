@@ -1,16 +1,14 @@
 import crypto from "node:crypto";
 import { Router } from "express";
-import { OAuth2Client } from "google-auth-library";
 import type { RowDataPacket } from "mysql2";
 import { z } from "zod";
 import { config } from "../config";
 import { db } from "../database";
-import { googleProfile } from "./google-profile";
+import { verifyGoogleIdentity } from "./google-identity";
 import { issueSession } from "./sessions";
 import { publicUser, type UserRow } from "./types";
 
 export const googleRouter = Router();
-const client = new OAuth2Client();
 const bodySchema = z.object({ idToken: z.string().min(20), clientRole: z.literal("CUSTOMER") });
 
 googleRouter.post("/oauth/google", async (req, res) => {
@@ -20,8 +18,7 @@ googleRouter.post("/oauth/google", async (req, res) => {
 
   let profile;
   try {
-    const ticket = await client.verifyIdToken({ idToken: parsed.data.idToken, audience: config.GOOGLE_CLIENT_ID });
-    profile = googleProfile(ticket.getPayload());
+    profile = await verifyGoogleIdentity(parsed.data.idToken, config.GOOGLE_CLIENT_ID);
   } catch {
     res.status(401).json({ success: false, message: "Google ID Token không hợp lệ" }); return;
   }
