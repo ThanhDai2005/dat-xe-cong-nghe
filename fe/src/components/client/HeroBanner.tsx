@@ -1,7 +1,11 @@
+import { Link } from "react-router";
 import BookingCard from "@/components/client/BookingCard";
-import { ArrowRight, Phone, CheckCircle } from "lucide-react";
+import { ArrowRight, Phone, CheckCircle, Sparkles, User, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const HeroBanner = () => {
+  const { isAuthenticated, user } = useAuth();
+
   return (
     <section
       className="relative py-6 sm:py-8 lg:py-12 overflow-hidden"
@@ -15,23 +19,45 @@ const HeroBanner = () => {
           {/* Hero Left Column */}
           <div className="lg:col-span-7 space-y-4 lg:space-y-5 lg:pr-2">
             {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-100/70 border border-blue-200 text-[#0040a2] text-xs sm:text-sm font-semibold tracking-wide">
-              <span className="flex h-2 w-2 rounded-full bg-[#0050c8] animate-pulse" />
-              Di chuyển thông minh mỗi ngày
-            </div>
+            {isAuthenticated ? (
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-100/80 border border-blue-200 text-[#0040a2] text-xs sm:text-sm font-semibold tracking-wide">
+                <Sparkles className="w-3.5 h-3.5 text-[#0050c8]" />
+                <span>Chào mừng trở lại, {user?.fullName || "Bạn"}!</span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-100/70 border border-blue-200 text-[#0040a2] text-xs sm:text-sm font-semibold tracking-wide">
+                <span className="flex h-2 w-2 rounded-full bg-[#0050c8] animate-pulse" />
+                Di chuyển thông minh mỗi ngày
+              </div>
+            )}
 
             {/* Main Heading */}
             <div className="space-y-3">
-              <h1 className="text-3xl sm:text-4xl xl:text-5xl font-extrabold text-slate-900 leading-[1.15] tracking-tight">
-                Đặt xe nhanh chóng.
-                <br />
-                <span className="text-[#0050c8]">Di chuyển dễ dàng.</span>
-              </h1>
-              <p className="text-sm sm:text-base text-slate-600 max-w-lg font-normal leading-relaxed">
-                Kết nối với tài xế phù hợp chỉ trong vài thao tác. Minh bạch giá
-                cước, thuận tiện di chuyển và đảm bảo an tâm tuyệt đối trên mọi
-                hành trình.
-              </p>
+              {isAuthenticated ? (
+                <>
+                  <h1 className="text-3xl sm:text-4xl xl:text-5xl font-extrabold text-slate-900 leading-[1.15] tracking-tight">
+                    Sẵn sàng cho hành trình?
+                    <br />
+                    <span className="text-[#0050c8]">Đặt xe chỉ trong 30 giây.</span>
+                  </h1>
+                  <p className="text-sm sm:text-base text-slate-600 max-w-lg font-normal leading-relaxed">
+                    Tài xế GoRide gần nhất đang sẵn sàng phục vụ bạn. Nhập điểm đón và điểm đến để nhận lộ trình tối ưu cùng ưu đãi cước phí tốt nhất.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-3xl sm:text-4xl xl:text-5xl font-extrabold text-slate-900 leading-[1.15] tracking-tight">
+                    Đặt xe nhanh chóng.
+                    <br />
+                    <span className="text-[#0050c8]">Di chuyển dễ dàng.</span>
+                  </h1>
+                  <p className="text-sm sm:text-base text-slate-600 max-w-lg font-normal leading-relaxed">
+                    Kết nối với tài xế phù hợp chỉ trong vài thao tác. Minh bạch giá
+                    cước, thuận tiện di chuyển và đảm bảo an tâm tuyệt đối trên mọi
+                    hành trình.
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Hero Action Buttons */}
@@ -43,20 +69,30 @@ const HeroBanner = () => {
                 Đặt xe ngay
                 <ArrowRight className="w-4 h-4" />
               </a>
-              <a
-                href="#support"
-                className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm sm:text-base px-5 py-2.5 rounded-xl shadow-sm transition-colors"
-              >
-                <Phone className="w-4 h-4 text-slate-500" />
-                Liên hệ hỗ trợ
-              </a>
+              {isAuthenticated ? (
+                <Link
+                  to="/profile"
+                  className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm sm:text-base px-5 py-2.5 rounded-xl shadow-sm transition-colors"
+                >
+                  <User className="w-4 h-4 text-[#0050c8]" />
+                  Hồ sơ của tôi
+                </Link>
+              ) : (
+                <a
+                  href="#support"
+                  className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-sm sm:text-base px-5 py-2.5 rounded-xl shadow-sm transition-colors"
+                >
+                  <Phone className="w-4 h-4 text-slate-500" />
+                  Liên hệ hỗ trợ
+                </a>
+              )}
             </div>
 
             {/* Trust Badges */}
             <div className="pt-1 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs text-slate-500 font-medium">
               <div className="flex items-center gap-1.5">
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Không phí ẩn</span>
+                <span>{isAuthenticated ? "Ưu đãi thành viên" : "Không phí ẩn"}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
@@ -142,17 +178,21 @@ const HeroBanner = () => {
                 </g>
               </svg>
 
-              {/* Floating Driver Status Chip */}
-              <div className="absolute bottom-2 left-6 bg-white/95 backdrop-blur-sm px-3.5 py-1.5 rounded-xl shadow-md border border-slate-100 flex items-center gap-2.5 animate-pulse">
+              {/* Floating Driver / Member Status Chip */}
+              <div className="absolute bottom-2 left-6 bg-white/95 backdrop-blur-sm px-3.5 py-1.5 rounded-xl shadow-md border border-slate-100 flex items-center gap-2.5">
                 <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-xs">
-                  ✓
+                  {isAuthenticated ? <ShieldCheck className="w-3.5 h-3.5" /> : "✓"}
                 </div>
                 <div className="leading-tight">
                   <p className="text-xs font-bold text-slate-800">
-                    Tài xế đã sẵn sàng
+                    {isAuthenticated
+                      ? (user?.fullName || "Thành viên thân thiết")
+                      : "Tài xế đã sẵn sàng"}
                   </p>
                   <p className="text-[10px] text-slate-500">
-                    Chỉ 3 phút để kết nối
+                    {isAuthenticated
+                      ? "Ưu đãi cước & kết nối tài xế ưu tiên"
+                      : "Chỉ 3 phút để kết nối"}
                   </p>
                 </div>
               </div>
