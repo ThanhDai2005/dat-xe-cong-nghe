@@ -6,6 +6,7 @@ import VerifyOtp from "@/pages/client/VerifyOtp";
 import ForgotPassword from "@/pages/client/ForgotPassword";
 import VerifyPasswordOtp from "@/pages/client/VerifyPasswordOTP";
 import ResetPassword from "@/pages/client/ResetPassword";
+import ProfilePage from "@/pages/client/ProfilePage";
 
 const clientRoute = {
   path: "/",
@@ -41,12 +42,10 @@ const clientRoute = {
           index: true,
           element: <HomePage />,
         },
-        // {
-        //     element: <PrivateRouter />,
-        //     children: [
-
-        //     ],
-        // },
+        {
+          path: "profile",
+          element: <ProfilePage />,
+        },
       ],
     },
   ],

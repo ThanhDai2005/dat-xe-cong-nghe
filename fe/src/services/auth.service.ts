@@ -22,15 +22,48 @@ export interface AuthResponse {
   data: { user: AuthUser; tokens: AuthTokens };
 }
 
-// ── Lưu token vào localStorage ────────────────────────────────────────────
+// ── Lưu token & user vào localStorage ─────────────────────────────────────
 export const saveTokens = (tokens: AuthTokens) => {
   localStorage.setItem("accessToken", tokens.accessToken);
   if (tokens.refreshToken) localStorage.setItem("refreshToken", tokens.refreshToken);
   if (tokens.familyId)     localStorage.setItem("familyId",     tokens.familyId);
+  window.dispatchEvent(new Event("auth-change"));
+};
+
+export const saveUser = (user: AuthUser) => {
+  localStorage.setItem("user", JSON.stringify(user));
+  window.dispatchEvent(new Event("auth-change"));
+};
+
+export const getUser = (): AuthUser | null => {
+  try {
+    const raw = localStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const isAuthenticated = (): boolean => {
+  return !!localStorage.getItem("accessToken");
 };
 
 export const getAccessToken = () => localStorage.getItem("accessToken") ?? undefined;
-export const clearTokens    = () => localStorage.removeItem("accessToken");
+
+export const clearTokens = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("familyId");
+  window.dispatchEvent(new Event("auth-change"));
+};
+
+export const clearAuth = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("familyId");
+  localStorage.removeItem("user");
+  window.dispatchEvent(new Event("auth-change"));
+};
 
 // ══════════════════════════════════════════════════════════════════════════
 //  /api/auth — Auth APIs

@@ -1,12 +1,22 @@
 import { useState } from "react";
-import { Link } from "react-router";
-import { Menu, X, Car } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { Menu, X, Car, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Đã đăng xuất thành công!");
+    navigate("/");
   };
 
   return (
@@ -60,31 +70,70 @@ const Header = () => {
 
         {/* User Action CTA Buttons - Desktop */}
         <div className="hidden sm:flex items-center gap-3 md:gap-4">
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-2 text-slate-700 hover:text-[#0050c8] font-medium text-sm lg:text-base px-3 py-2 rounded-lg transition-colors"
-          >
-            <svg
-              className="w-4 h-4 text-slate-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-              />
-            </svg>
-            Đăng nhập
-          </Link>
-          <Link
-            to="/register"
-            className="bg-[#0050c8] hover:bg-[#0040a2] active:bg-[#003580] text-white font-semibold text-sm lg:text-base px-4 md:px-5 py-2 md:py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:shadow-blue-500/30"
-          >
-            Đăng ký
-          </Link>
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2.5">
+              {/* Profile Link Button */}
+              <Link
+                to="/profile"
+                className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-blue-50/80 hover:bg-blue-100/70 border border-blue-200/60 text-slate-800 transition-all group"
+                title="Xem thông tin cá nhân"
+              >
+                <div className="w-8 h-8 rounded-lg bg-[#0050c8] text-white font-bold text-xs flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                  {user?.fullName ? (
+                    user.fullName.trim().charAt(0).toUpperCase()
+                  ) : (
+                    <User className="w-4 h-4" />
+                  )}
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-slate-800 leading-tight max-w-[130px] truncate">
+                    {user?.fullName || "Tài khoản"}
+                  </p>
+                  <p className="text-[11px] text-[#0050c8] font-semibold leading-tight flex items-center gap-0.5">
+                    Hồ sơ
+                  </p>
+                </div>
+              </Link>
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-1.5 text-slate-600 hover:text-red-600 font-medium text-sm px-3 py-2 rounded-xl hover:bg-red-50 border border-slate-200/80 hover:border-red-200 transition-all"
+                title="Đăng xuất tài khoản"
+              >
+                <LogOut className="w-4 h-4 text-slate-500 hover:text-red-600" />
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 text-slate-700 hover:text-[#0050c8] font-medium text-sm lg:text-base px-3 py-2 rounded-lg transition-colors"
+              >
+                <svg
+                  className="w-4 h-4 text-slate-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                </svg>
+                Đăng nhập
+              </Link>
+              <Link
+                to="/register"
+                className="bg-[#0050c8] hover:bg-[#0040a2] active:bg-[#003580] text-white font-semibold text-sm lg:text-base px-4 md:px-5 py-2 md:py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all hover:shadow-lg hover:shadow-blue-500/30"
+              >
+                Đăng ký
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -139,22 +188,66 @@ const Header = () => {
           >
             Hỗ trợ
           </a>
-          <div className="pt-4 border-t border-slate-100 flex gap-2">
-            <Link
-              to="/login"
-              className="w-1/2 py-2.5 text-center font-medium text-slate-700 border border-slate-200 rounded-xl"
-              onClick={toggleMobileMenu}
-            >
-              Đăng nhập
-            </Link>
-            <Link
-              to="/register"
-              className="w-1/2 py-2.5 text-center font-medium text-white bg-[#0050c8] rounded-xl"
-              onClick={toggleMobileMenu}
-            >
-              Đăng ký
-            </Link>
-          </div>
+
+          {/* User Auth Section - Mobile */}
+          {isAuthenticated ? (
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="w-10 h-10 rounded-xl bg-[#0050c8] text-white font-bold flex items-center justify-center text-sm shadow-sm">
+                  {user?.fullName ? (
+                    user.fullName.trim().charAt(0).toUpperCase()
+                  ) : (
+                    <User className="w-5 h-5" />
+                  )}
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-sm font-bold text-slate-900 truncate">
+                    {user?.fullName || "Khách hàng"}
+                  </p>
+                  <p className="text-xs text-slate-500 truncate">
+                    {user?.email || "Tài khoản GoRide"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Link
+                  to="/profile"
+                  className="w-1/2 py-2.5 text-center font-semibold text-[#0050c8] border border-blue-200 bg-blue-50 rounded-xl flex items-center justify-center gap-1.5 text-sm"
+                  onClick={toggleMobileMenu}
+                >
+                  <User className="w-4 h-4" />
+                  Hồ sơ
+                </Link>
+                <button
+                  onClick={() => {
+                    toggleMobileMenu();
+                    handleLogout();
+                  }}
+                  className="w-1/2 py-2.5 text-center font-semibold text-red-600 border border-red-200 bg-red-50 rounded-xl flex items-center justify-center gap-1.5 text-sm"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Đăng xuất
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="pt-4 border-t border-slate-100 flex gap-2">
+              <Link
+                to="/login"
+                className="w-1/2 py-2.5 text-center font-medium text-slate-700 border border-slate-200 rounded-xl"
+                onClick={toggleMobileMenu}
+              >
+                Đăng nhập
+              </Link>
+              <Link
+                to="/register"
+                className="w-1/2 py-2.5 text-center font-medium text-white bg-[#0050c8] rounded-xl"
+                onClick={toggleMobileMenu}
+              >
+                Đăng ký
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>
