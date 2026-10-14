@@ -351,7 +351,7 @@ export function RegisterForm({ className }: React.ComponentProps<"div">) {
                 Đã có tài khoản GoRide?{" "}
                 <Link
                   to="/login"
-                  className="text-primary font-semibold hover:underline ml-1 inline-flex items-center gap-0.5"
+                  className="text-primary font-semibold ml-1 inline-flex items-center gap-0.5"
                 >
                   Đăng nhập ngay
                   <span className="material-symbols-outlined text-[16px]">

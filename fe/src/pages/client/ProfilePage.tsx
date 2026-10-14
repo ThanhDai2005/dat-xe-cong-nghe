@@ -57,11 +57,14 @@ const ProfilePage = () => {
                   </h1>
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                    {user?.status === "ACTIVE" ? "Đang hoạt động" : "Đã xác minh"}
+                    {user?.status === "ACTIVE"
+                      ? "Đang hoạt động"
+                      : "Đã xác minh"}
                   </span>
                 </div>
                 <p className="text-sm text-slate-500">
-                  {user?.email || "Chưa cập nhật email"} • {user?.role || "CUSTOMER"}
+                  {user?.email || "Chưa cập nhật email"} •{" "}
+                  {user?.role || "CUSTOMER"}
                 </p>
               </div>
             </div>
@@ -138,7 +141,9 @@ const ProfilePage = () => {
                       </span>
                       <p className="text-sm font-bold text-slate-800 flex items-center gap-2">
                         <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                        {user?.role === "CUSTOMER" ? "Khách hàng" : user?.role || "Thành viên"}
+                        {user?.role === "CUSTOMER"
+                          ? "Khách hàng"
+                          : user?.role || "Thành viên"}
                       </p>
                     </div>
 
@@ -166,7 +171,8 @@ const ProfilePage = () => {
                   Ưu đãi GoRide Rewards
                 </h3>
                 <p className="text-xs text-blue-100 leading-relaxed mb-4">
-                  Tận hưởng cước phí ưu đãi và ưu tiên đón chuyến trên mọi hành trình của bạn.
+                  Tận hưởng cước phí ưu đãi và ưu tiên đón chuyến trên mọi hành
+                  trình của bạn.
                 </p>
                 <Link
                   to="/#booking-card"
@@ -190,7 +196,8 @@ const ProfilePage = () => {
               Chưa có lịch sử chuyến đi nào
             </h3>
             <p className="text-sm text-slate-500 max-w-sm mx-auto mb-6">
-              Khi bạn hoàn thành các chuyến xe cùng GoRide, toàn bộ lộ trình và biên lai điện tử sẽ được lưu tại đây.
+              Khi bạn hoàn thành các chuyến xe cùng GoRide, toàn bộ lộ trình và
+              biên lai điện tử sẽ được lưu tại đây.
             </p>
             <Link
               to="/#booking-card"

@@ -6,7 +6,15 @@ import VerifyOtp from "@/pages/client/VerifyOtp";
 import ForgotPassword from "@/pages/client/ForgotPassword";
 import VerifyPasswordOtp from "@/pages/client/VerifyPasswordOTP";
 import ResetPassword from "@/pages/client/ResetPassword";
+import PrivateRouter from "@/components/auth/PrivateRouter";
+import ServicePage from "@/pages/client/ServicePage";
+import FarePage from "@/pages/client/FarePage";
+import SupportPage from "@/pages/client/SupportPage";
 import ProfilePage from "@/pages/client/ProfilePage";
+import TripPage from "@/pages/client/TripPage";
+import BookingPage from "@/pages/client/BookingPage";
+import TripDetailPage from "@/pages/client/TripDetailPage";
+import BookingConfirmPage from "@/pages/client/BookingConfirmPage";
 
 const clientRoute = {
   path: "/",
@@ -42,9 +50,21 @@ const clientRoute = {
           index: true,
           element: <HomePage />,
         },
+        { path: "booking", element: <BookingPage /> },
+        { path: "booking/confirm", element: <BookingConfirmPage /> },
+        { path: "services", element: <ServicePage /> },
+        { path: "fares", element: <FarePage /> },
+        { path: "support", element: <SupportPage /> },
         {
-          path: "profile",
-          element: <ProfilePage />,
+          element: <PrivateRouter />,
+          children: [
+            {
+              path: "profile",
+              element: <ProfilePage />,
+            },
+            { path: "trips", element: <TripPage /> },
+            { path: "trip/:tripId", element: <TripDetailPage /> },
+          ],
         },
       ],
     },

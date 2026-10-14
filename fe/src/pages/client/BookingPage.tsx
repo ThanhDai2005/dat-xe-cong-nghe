@@ -1,8 +1,8 @@
 const BookingPage = () => {
-    return (
-        <>
-            <div>BookingPage</div>
-        </>
-    )
-}
-export default BookingPage
+  return (
+    <>
+      <div>BookingPage</div>
+    </>
+  );
+};
+export default BookingPage;
