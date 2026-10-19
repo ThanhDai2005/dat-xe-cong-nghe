@@ -1,8 +1,25 @@
-import { LoginForm } from "@/components/auth/login-form";
+import { useLocation } from "react-router-dom";
+import LoginForm from "@/components/auth/login-form";
+
 export default function LoginPage() {
+  const location = useLocation();
+
+  const redirectTo =
+    new URLSearchParams(location.search).get("redirect") ||
+    "/BookingPage";
+
+  // Chỉ cho phép điều hướng đến đường dẫn nội bộ
+  const safeRedirect = redirectTo.startsWith("/") &&
+    !redirectTo.startsWith("//")
+    ? redirectTo
+    : "/BookingPage";
+
   return (
-    <div className="min-h-svh bg-surface flex flex-col justify-center items-center py-9 px-4 md:px-6 relative">
-      <LoginForm className="w-full" />
+    <div className="min-h-screen">
+      <LoginForm
+        className="w-full"
+        redirectTo={safeRedirect}
+      />
     </div>
   );
 }
