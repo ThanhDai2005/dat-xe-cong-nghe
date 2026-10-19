@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   CheckCircle2,
   CircleAlert,
-  LoaderCircle,
   TicketCheck,
   Coins,
 } from "lucide-react";
