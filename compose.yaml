@@ -56,6 +56,12 @@ services:
       MAPS_MOCK_DISTANCE_METERS: ${MAPS_MOCK_DISTANCE_METERS:-10000}
     ports:
       - "127.0.0.1:${API_PORT:-3100}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
     depends_on:
       mysql:
         condition: service_healthy

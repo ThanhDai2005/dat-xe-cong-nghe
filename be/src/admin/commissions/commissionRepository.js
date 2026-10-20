@@ -19,12 +19,12 @@ class CommissionRepository {
     const total = countRows[0].total;
 
     const selectSql = `
-      SELECT 
-        id, 
-        base_driver_rate, 
-        increase_per_completed_trip, 
-        maximum_driver_rate, 
-        effective_from, 
+      SELECT
+        id,
+        base_driver_rate,
+        increase_per_completed_trip,
+        maximum_driver_rate,
+        effective_from,
         is_active
       FROM commission_policies
       ${whereClause}
@@ -44,12 +44,12 @@ class CommissionRepository {
 
   async findById(id) {
     const [rows] = await db.query(
-      `SELECT 
-        id, 
-        base_driver_rate, 
-        increase_per_completed_trip, 
-        maximum_driver_rate, 
-        effective_from, 
+      `SELECT
+        id,
+        base_driver_rate,
+        increase_per_completed_trip,
+        maximum_driver_rate,
+        effective_from,
         is_active
       FROM commission_policies
       WHERE id = ?
@@ -61,12 +61,12 @@ class CommissionRepository {
 
   async findActivePolicy() {
     const [rows] = await db.query(
-      `SELECT 
-        id, 
-        base_driver_rate, 
-        increase_per_completed_trip, 
-        maximum_driver_rate, 
-        effective_from, 
+      `SELECT
+        id,
+        base_driver_rate,
+        increase_per_completed_trip,
+        maximum_driver_rate,
+        effective_from,
         is_active
       FROM commission_policies
       WHERE is_active = 1

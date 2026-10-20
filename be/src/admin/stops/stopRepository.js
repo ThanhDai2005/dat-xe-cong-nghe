@@ -34,15 +34,15 @@ class StopRepository {
     const total = countRows[0].total;
 
     const selectSql = `
-      SELECT 
-        s.id, 
-        s.route_id, 
-        s.stop_name, 
-        s.address, 
-        s.type, 
-        s.stop_order, 
-        s.status, 
-        s.created_at, 
+      SELECT
+        s.id,
+        s.route_id,
+        s.stop_name,
+        s.address,
+        s.type,
+        s.stop_order,
+        s.status,
+        s.created_at,
         s.updated_at,
         r.origin AS route_origin,
         r.destination AS route_destination
@@ -65,15 +65,15 @@ class StopRepository {
 
   async findById(id) {
     const [rows] = await db.query(
-      `SELECT 
-        s.id, 
-        s.route_id, 
-        s.stop_name, 
-        s.address, 
-        s.type, 
-        s.stop_order, 
-        s.status, 
-        s.created_at, 
+      `SELECT
+        s.id,
+        s.route_id,
+        s.stop_name,
+        s.address,
+        s.type,
+        s.stop_order,
+        s.status,
+        s.created_at,
         s.updated_at,
         r.origin AS route_origin,
         r.destination AS route_destination
@@ -88,8 +88,8 @@ class StopRepository {
 
   async findByRouteAndName(routeId, stopName, excludeId = null) {
     let sql = `
-      SELECT id, route_id, stop_name 
-      FROM stops 
+      SELECT id, route_id, stop_name
+      FROM stops
       WHERE route_id = ? AND LOWER(TRIM(stop_name)) = LOWER(TRIM(?))
     `;
     const params = [routeId, stopName];
