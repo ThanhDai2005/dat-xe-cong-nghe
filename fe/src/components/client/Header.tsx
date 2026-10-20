@@ -39,13 +39,13 @@ export default function Header() {
     }
   };
 
-  // Menu không gạch chân, vẫn giữ hiệu ứng hover
+  // Đánh dấu trang hiện tại bằng đường gạch dưới.
   const navLinkClass = (isActive: boolean) =>
-    `inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold
+    `relative inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium
     !no-underline transition-all duration-200 ease-out
     ${
       isActive
-        ? "text-blue-600"
+        ? "text-blue-600 after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:rounded-full after:bg-blue-600"
         : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
     }`;
 
@@ -69,7 +69,7 @@ export default function Header() {
         </Link>
 
         {/* MENU DESKTOP */}
-        <div className="hidden items-center gap-1 md:flex lg:gap-2">
+        <div className="hidden items-center gap-1 lg:flex lg:gap-2">
           {navigation.map((item) => (
             <NavLink
               key={item.path}
@@ -85,7 +85,7 @@ export default function Header() {
         </div>
 
         {/* TÀI KHOẢN DESKTOP */}
-        <div className="hidden shrink-0 items-center gap-3 md:flex">
+        <div className="hidden shrink-0 items-center gap-3 lg:flex">
           {isAuthenticated ? (
             <>
               <button
@@ -140,7 +140,7 @@ export default function Header() {
         <button
           type="button"
           onClick={() => setMobileMenuOpen((open) => !open)}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-gray-700 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 active:scale-95 md:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-gray-700 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 active:scale-95 lg:hidden"
           aria-label={mobileMenuOpen ? "Đóng menu" : "Mở menu"}
           aria-expanded={mobileMenuOpen}
         >
@@ -150,7 +150,7 @@ export default function Header() {
 
       {/* MENU MOBILE */}
       <div
-        className={`grid border-t border-gray-100 bg-white transition-[grid-template-rows,opacity] duration-300 ease-in-out md:hidden ${
+        className={`grid border-t border-gray-100 bg-white transition-[grid-template-rows,opacity] duration-300 ease-in-out lg:hidden ${
           mobileMenuOpen
             ? "grid-rows-[1fr] opacity-100"
             : "pointer-events-none grid-rows-[0fr] opacity-0"

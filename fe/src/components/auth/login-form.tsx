@@ -134,8 +134,11 @@ export function LoginForm({
     setError("");
     setSuccess("Đăng nhập thành công!");
 
-    // Nếu xuất phát từ đặt xe, quay lại đúng BookingPage kèm query.
-    navigate(safeRedirect, { replace: true });
+    // Giữ bản nháp đặt xe khi quay lại sau đăng nhập, không đưa SĐT lên URL.
+    navigate(safeRedirect, {
+      replace: true,
+      state: safeRedirect === "/booking" ? location.state : undefined,
+    });
   };
 
   const handleChangeMethod = (method: LoginMethod) => {

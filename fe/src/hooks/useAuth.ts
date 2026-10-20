@@ -5,6 +5,7 @@ import {
   isAuthenticated as checkAuth,
   clearAuth,
   getProfile,
+  normalizeAuthUser,
 } from "@/services/auth.service";
 
 export const useAuth = () => {
@@ -28,8 +29,9 @@ export const useAuth = () => {
       getProfile()
         .then((res) => {
           if (res?.data) {
-            localStorage.setItem("user", JSON.stringify(res.data));
-            setUser(res.data);
+            const profile = normalizeAuthUser(res.data);
+            localStorage.setItem("user", JSON.stringify(profile));
+            setUser(profile);
           }
         })
         .catch(() => {})
