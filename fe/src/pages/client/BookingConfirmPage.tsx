@@ -21,6 +21,8 @@ import {
   ChevronRight,
   Banknote,
 } from "lucide-react";
+import { getUser, isAuthenticated } from "@/services/auth.service";
+import { bookingApi, bookingErrorMessage, bookingErrorStatus, type BookingDraft } from "@/services/booking.service";
 
 type PaymentMethod = "cash" | "wallet" | "card";
 
@@ -48,8 +50,16 @@ type RawBooking = Partial<BookingPayload> & {
 
 type BookingLocationState = {
   booking?: RawBooking;
+  draft?: BookingDraft;
   estimated_total?: number;
   vehicle_name?: string;
+};
+
+const readSavedReview = (): BookingLocationState | null => {
+  try {
+    const raw = sessionStorage.getItem("bookingReview");
+    return raw ? JSON.parse(raw) as BookingLocationState : null;
+  } catch { return null; }
 };
 
 const VEHICLES: Record<
@@ -87,23 +97,22 @@ const PAYMENT_METHODS: {
 }[] = [
   {
     id: "cash",
-    name: "Tiền mặt khi kết thúc chuyến",
-    description: "Thanh toán trực tiếp cho tài xế sau khi đến nơi",
+    name: "Tiền mặt (giả lập)",
+    description: "Chỉ mô phỏng giao dịch, không thu tiền thực",
     badge: "Phổ biến",
     icon: Banknote,
   },
   {
     id: "wallet",
-    name: "Ví điện tử ZaloPay / MoMo",
-    description: "Thanh toán điện tử thuận tiện, không cần tiền mặt",
+    name: "Ví điện tử MoMo (giả lập)",
+    description: "Mô phỏng thanh toán ví, không kết nối ví thật",
     badge: "Ví điện tử",
     icon: Wallet,
   },
   {
     id: "card",
-    name: "Thẻ Visa / Mastercard / JCB",
-    description:
-      "Hỗ trợ thanh toán trực tuyến khi tích hợp cổng thanh toán",
+    name: "Thẻ ngân hàng (giả lập)",
+    description: "Mô phỏng thanh toán thẻ, không gửi thông tin thẻ",
     badge: "Thẻ ngân hàng",
     icon: CreditCard,
   },
@@ -184,12 +193,12 @@ function normalizeBooking(
 export default function BookingConfirmPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [savedReview] = useState(readSavedReview);
 
-  const state = (location.state ?? null) as
-    | BookingLocationState
-    | null;
+  const state = (location.state ?? savedReview) as BookingLocationState | null;
 
   const rawBooking = state?.booking;
+  const draft = state?.draft ?? savedReview?.draft;
 
   const booking = useMemo(() => {
     if (!rawBooking) return null;
@@ -207,6 +216,7 @@ export default function BookingConfirmPage() {
   const [promoMessage, setPromoMessage] = useState("");
   const [discount, setDiscount] = useState(0);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const vehicle = useMemo(() => {
     if (!booking) return null;
@@ -243,27 +253,34 @@ export default function BookingConfirmPage() {
     );
   };
 
-  // Xác nhận và chuyển sang trang thành công.
-  const handleConfirm = () => {
-    if (!booking) {
+  // Giữ ghế trên máy chủ rồi chuyển sang bước thanh toán giả lập.
+  const handleConfirm = async () => {
+    if (!booking || !draft) {
       setError("Không tìm thấy thông tin chuyến xe. Vui lòng quay lại trang đặt xe.");
       return;
     }
-
-    const confirmationPayload = {
-      booking,
-      estimated_total: total,
-      vehicle_name: vehicle?.name ?? state?.vehicle_name ?? "",
-      payment_method: paymentMethod,
-      promo_code: promoCode.trim().toUpperCase(),
-      booking_code: `GR-${Date.now().toString().slice(-6)}`,
-      status: "pending",
-    };
-
-    // Chuyển sang trang thành công và truyền thông tin đặt xe
-    navigate("/booking/success", {
-      state: confirmationPayload,
-    });
+    if (submitting) return;
+    if (!isAuthenticated()) {
+      navigate("/login?redirect=%2Fbooking%2Fconfirm");
+      return;
+    }
+    const user = getUser();
+    if (!user?.id) {
+      setError("Không tìm thấy tài khoản đang đăng nhập. Vui lòng đăng nhập lại.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      const reservation = await bookingApi.createBooking(user.id, draft);
+      sessionStorage.removeItem("bookingReview");
+      const method = paymentMethod === "wallet" ? "MOMO" : paymentMethod === "card" ? "CARD" : "CASH";
+      navigate(`/booking/payment/${encodeURIComponent(reservation.bookingId)}`, { state: { paymentMethod: method } });
+    } catch (cause) {
+      if (bookingErrorStatus(cause) === 401) {
+        navigate("/login?redirect=%2Fbooking%2Fconfirm");
+      } else setError(bookingErrorMessage(cause));
+    } finally { setSubmitting(false); }
   };
 
   if (!booking) {
@@ -384,7 +401,7 @@ export default function BookingConfirmPage() {
                   type="button"
                   onClick={() =>
                     navigate("/booking", {
-                      state: { booking },
+                      state: { booking, draft },
                     })
                   }
                   className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold text-blue-700 hover:text-blue-900"
@@ -510,8 +527,8 @@ export default function BookingConfirmPage() {
               </div>
 
               <p className="mb-4 text-[10px] leading-5 text-slate-500">
-                Chọn hình thức thanh toán. Giao dịch thực tế cần được
-                tích hợp với backend hoặc cổng thanh toán.
+                Chọn hình thức cho bước thanh toán giả lập tiếp theo.
+                Không có giao dịch tiền thật hoặc kết nối cổng thanh toán.
               </p>
 
               <div className="space-y-2">
@@ -719,16 +736,17 @@ export default function BookingConfirmPage() {
               <button
                 type="button"
                 onClick={handleConfirm}
+                disabled={submitting}
                 
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-700 px-4 py-3.5 text-xs font-extrabold text-white shadow-lg shadow-blue-700/20 transition hover:bg-blue-800"
               >
-                Xác nhận đặt xe ngay
+                {submitting ? "Đang giữ ghế..." : "Giữ ghế và tiếp tục thanh toán"}
                 <ArrowRight size={16} />
               </button>
 
               <button
                 type="button"
-                onClick={() => navigate("/booking")}
+                onClick={() => navigate("/booking", { state: { booking, draft } })}
                 className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#f0f2ff] px-4 py-3 text-[10px] font-bold text-slate-700 transition hover:bg-blue-100"
               >
                 <ArrowLeft size={13} />

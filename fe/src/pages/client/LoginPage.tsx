@@ -6,13 +6,13 @@ export default function LoginPage() {
 
   const redirectTo =
     new URLSearchParams(location.search).get("redirect") ||
-    "/BookingPage";
+    "/HomePage";
 
   // Chỉ cho phép điều hướng đến đường dẫn nội bộ
   const safeRedirect = redirectTo.startsWith("/") &&
     !redirectTo.startsWith("//")
     ? redirectTo
-    : "/BookingPage";
+    : "/HomePage";
 
   return (
     <div className="min-h-screen">

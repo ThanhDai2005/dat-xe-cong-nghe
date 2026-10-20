@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -18,6 +18,10 @@ import {
 
 import { formatMoney } from "../../components/client/bookingCardData";
 import GoogleMapLocationPicker from "@/components/client/GoogleMapLocationPicker";
+import {
+  bookingApi, bookingErrorMessage, type BookingDraft, type RouteOption,
+  type SeatAvailability, type TripDetail, type TripOption,
+} from "@/services/booking.service";
 
 type VehicleOption = {
   id: string;
@@ -25,8 +29,24 @@ type VehicleOption = {
   description: string;
   price: number;
   seats: number;
+  availableSeats: number;
   tag: string;
 };
+
+const VEHICLE_TIERS = [
+  {
+    seats: 4,
+    name: "GoRide 4 chỗ",
+    description: "Sedan đô thị êm ái, cốp sau vừa vặn 2 vali size trung. Tiết kiệm tối ưu trong nội thành.",
+    tag: "Tiết kiệm",
+  },
+  {
+    seats: 7,
+    name: "GoRide 7 chỗ",
+    description: "Dòng xe SUV/MPV rộng rãi, phù hợp gia đình và hành khách có nhiều hành lý.",
+    tag: "Không gian rộng",
+  },
+];
 
 export type BookingPayload = {
   pickup_address: string;
@@ -40,27 +60,6 @@ export type BookingPayload = {
   trip_type: string;
   vehicle_type: string;
 };
-
-const vehicles: VehicleOption[] = [
-  {
-    id: "4-seat",
-    name: "GoRide 4 chỗ",
-    description:
-      "Sedan đô thị êm ái, cốp sau vừa vặn 2 vali size trung. Tiết kiệm tối ưu trong nội thành.",
-    price: 86000,
-    seats: 4,
-    tag: "Tiết kiệm",
-  },
-  {
-    id: "7-seat",
-    name: "GoRide 7 chỗ",
-    description:
-      "Dòng xe SUV/MPV rộng rãi, phù hợp gia đình và hành khách có nhiều hành lý.",
-    price: 124000,
-    seats: 7,
-    tag: "Không gian rộng",
-  },
-];
 
 const inputClass =
   "w-full min-w-0 rounded-lg border border-slate-200 bg-[#f0f2ff] px-3 py-2.5 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100";
@@ -132,15 +131,15 @@ function splitDeparture(value?: string): {
     };
   }
 
-  const [date, time = ""] = value.split("T");
-
+  const departure = new Date(value);
+  if (Number.isNaN(departure.getTime())) return { date: getDefaultDate(), time: getDefaultTime() };
   return {
-    date: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : getDefaultDate(),
-    time: /^\d{2}:\d{2}/.test(time)
-      ? time.slice(0, 5)
-      : getDefaultTime(),
+    date: `${departure.getFullYear()}-${String(departure.getMonth() + 1).padStart(2, "0")}-${String(departure.getDate()).padStart(2, "0")}`,
+    time: `${String(departure.getHours()).padStart(2, "0")}:${String(departure.getMinutes()).padStart(2, "0")}`,
   };
 }
+
+const isPastDeparture = (value: Date) => value.getTime() < Date.now();
 
 export default function BookingPage() {
   const navigate = useNavigate();
@@ -151,9 +150,10 @@ export default function BookingPage() {
   const restoredBooking = location.state?.booking as
     | BookingPayload
     | undefined;
+  const restoredDraft = location.state?.draft as BookingDraft | undefined;
 
   const initialDeparture = splitDeparture(
-    restoredBooking?.requested_departure_at,
+    restoredBooking?.requested_departure_at ?? params.get("departureAt") ?? undefined,
   );
 
   const initialPhone = splitPhone(restoredBooking?.phone);
@@ -173,7 +173,7 @@ export default function BookingPage() {
   );
 
   const [vehicleId, setVehicleId] = useState(
-    restoredBooking?.vehicle_type ?? "4-seat",
+    restoredDraft?.tripId ?? params.get("tripId") ?? "",
   );
 
   const [seatCount, setSeatCount] = useState(
@@ -203,15 +203,80 @@ export default function BookingPage() {
   const [faqOpen, setFaqOpen] = useState(0);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [routes, setRoutes] = useState<RouteOption[]>([]);
+  const [routeId, setRouteId] = useState(restoredDraft?.routeId ?? params.get("route") ?? "");
+  const [trips, setTrips] = useState<TripOption[]>([]);
+  const [trip, setTrip] = useState<TripDetail | null>(null);
+  const [seats, setSeats] = useState<SeatAvailability | null>(null);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>(restoredDraft?.seatNumbers ?? []);
+  const [pickupPointId, setPickupPointId] = useState(restoredDraft?.pickupPointId ?? "");
+  const [dropoffPointId, setDropoffPointId] = useState(restoredDraft?.dropoffPointId ?? "");
+  const [bookingTypeId, setBookingTypeId] = useState(restoredDraft?.bookingTypeId ?? "");
 
-  const selectedVehicle = useMemo(
-    () =>
-      vehicles.find((vehicle) => vehicle.id === vehicleId) ??
-      vehicles[0],
-    [vehicleId],
-  );
+  useEffect(() => {
+    let active = true;
+    bookingApi.routes().then((rows) => { if (active) setRoutes(rows); })
+      .catch((cause) => { if (active) setError(bookingErrorMessage(cause)); });
+    return () => { active = false; };
+  }, []);
 
-  const totalPrice = selectedVehicle.price * seatCount;
+  useEffect(() => {
+    if (!routeId || !departureDate) return;
+    let active = true;
+    bookingApi.trips(routeId, departureDate).then((rows) => { if (active) setTrips(rows); })
+      .catch((cause) => { if (active) setError(bookingErrorMessage(cause)); });
+    return () => { active = false; };
+  }, [routeId, departureDate]);
+
+  useEffect(() => {
+    if (!vehicleId) return;
+    let active = true;
+    Promise.all([bookingApi.trip(vehicleId), bookingApi.seats(vehicleId)])
+      .then(([detail, availability]) => {
+        if (!active) return;
+        if (detail.routeId !== routeId) {
+          setError("Chuyến xe không thuộc tuyến đã chọn.");
+          return;
+        }
+        setTrip(detail);
+        setSeats(availability);
+        setBookingTypeId((current) => current || detail.fareOptions.find((option) => option.farePerSeat !== null)?.bookingTypeId || "");
+        setSelectedSeats((current) => current.filter((seat) => !availability.bookedSeats.includes(seat)));
+      })
+      .catch((cause) => { if (active) setError(bookingErrorMessage(cause)); });
+    return () => { active = false; };
+  }, [vehicleId, routeId]);
+
+  const displayTrips = trip && seats && trip.status === "OPEN" &&
+    !trips.some((option) => option.tripId === trip.tripId)
+    ? [...trips, {
+      tripId: trip.tripId, routeName: trip.routeName, departureTime: trip.departureTime,
+      vehicleType: trip.vehicleName, price: trip.price, totalSeats: trip.totalSeats,
+      availableSeats: seats.availableSeats,
+    }] : trips;
+  const vehicles: VehicleOption[] = displayTrips.map((option) => {
+    const tier = VEHICLE_TIERS.find((item) => item.seats === option.totalSeats);
+    return {
+      id: option.tripId,
+      name: tier ? `${tier.name} · ${option.vehicleType}` : `Xe ${option.vehicleType}`,
+      description: `${tier?.description ?? "Chuyến xe theo lịch của GoRide."} Khởi hành ${new Date(option.departureTime).toLocaleString("vi-VN")}. Còn ${option.availableSeats} ghế.`,
+      price: option.price ?? 0,
+      seats: option.totalSeats,
+      availableSeats: option.availableSeats,
+      tag: `${tier?.tag ?? "Chuyến đang mở"} · ${option.availableSeats} ghế trống`,
+    };
+  });
+
+  const selectedVehicle = vehicles.find((vehicle) => vehicle.id === vehicleId) ??
+    { id: "", name: "Chưa chọn chuyến", description: "", price: 0, seats: 0, availableSeats: 0, tag: "" };
+
+  const selectedFare = trip?.fareOptions.find((option) => option.bookingTypeId === bookingTypeId);
+  const pickupStop = trip?.stops.find((stop) => stop.stopId === pickupPointId);
+  const dropoffStop = trip?.stops.find((stop) => stop.stopId === dropoffPointId);
+  const dropoffStops = trip?.stops.filter((stop) =>
+    (stop.type === "DROPOFF" || stop.type === "BOTH") &&
+    (!pickupStop || stop.stopOrder > pickupStop.stopOrder)) ?? [];
+  const totalPrice = (selectedFare?.farePerSeat ?? selectedVehicle.price) * seatCount;
 
   const departure = useMemo(() => {
     if (!departureDate || !departureTime) return "Chưa chọn";
@@ -225,15 +290,42 @@ export default function BookingPage() {
 
   const updatePickup = (address: string) => {
     setPickup(address);
+    setPickupPointId("");
+    setDropoffPointId("");
     clearError();
   };
 
   const updateDestination = (address: string) => {
     setDestination(address);
+    setDropoffPointId("");
     clearError();
   };
 
   const validate = (): boolean => {
+    if (!routeId || !trip || !seats || trip.tripId !== vehicleId) {
+      setError("Vui lòng chọn một chuyến xe đang mở.");
+      return false;
+    }
+    if (trip.status !== "OPEN" || isPastDeparture(new Date(trip.departureTime))) {
+      setError("Chuyến xe đã ngừng nhận đặt hoặc đã khởi hành.");
+      return false;
+    }
+    if (tripType !== "one-way") {
+      setError("API hiện chỉ hỗ trợ chuyến một chiều. Vui lòng chọn Đi một chiều.");
+      return false;
+    }
+    if (!pickupStop || !dropoffStop || pickupStop.stopOrder >= dropoffStop.stopOrder) {
+      setError("Vui lòng chọn điểm đón và điểm trả hợp lệ trên tuyến.");
+      return false;
+    }
+    if (!selectedFare || selectedFare.farePerSeat === null) {
+      setError("Chuyến xe chưa có giá vé cho hình thức đã chọn.");
+      return false;
+    }
+    if (selectedSeats.length !== seatCount || selectedSeats.some((seat) => seats.bookedSeats.includes(seat))) {
+      setError(`Vui lòng chọn đúng ${seatCount} ghế còn trống.`);
+      return false;
+    }
     if (!pickup.trim()) {
       setError("Vui lòng chọn hoặc nhập địa chỉ điểm đón.");
       return false;
@@ -241,14 +333,6 @@ export default function BookingPage() {
 
     if (!destination.trim()) {
       setError("Vui lòng chọn hoặc nhập địa chỉ điểm đến.");
-      return false;
-    }
-
-    if (
-      pickup.trim().toLocaleLowerCase("vi") ===
-      destination.trim().toLocaleLowerCase("vi")
-    ) {
-      setError("Điểm đón và điểm đến không được trùng nhau.");
       return false;
     }
 
@@ -266,7 +350,7 @@ export default function BookingPage() {
       return false;
     }
 
-    if (departureDateTime.getTime() < Date.now()) {
+    if (isPastDeparture(departureDateTime)) {
       setError("Thời gian khởi hành phải ở hiện tại hoặc tương lai.");
       return false;
     }
@@ -274,10 +358,10 @@ export default function BookingPage() {
     if (
       !Number.isInteger(seatCount) ||
       seatCount < 1 ||
-      seatCount > selectedVehicle.seats
+      seatCount > selectedVehicle.availableSeats
     ) {
       setError(
-        `Vui lòng chọn từ 1 đến ${selectedVehicle.seats} ghế cho loại xe này.`,
+        `Vui lòng chọn từ 1 đến ${selectedVehicle.availableSeats} ghế còn trống.`,
       );
       return false;
     }
@@ -307,23 +391,46 @@ export default function BookingPage() {
     const payload: BookingPayload = {
       pickup_address: pickup.trim(),
       destination_address: destination.trim(),
-      requested_departure_at: `${departureDate}T${departureTime}:00`,
+      requested_departure_at: trip!.departureTime,
       seat_count: seatCount,
-      fare_per_seat: selectedVehicle.price,
+      fare_per_seat: selectedFare!.farePerSeat!,
       customer_name: customerName.trim(),
       phone: `${phonePrefix} ${normalizedPhone}`,
       note: note.trim(),
       trip_type: tripType,
-      vehicle_type: selectedVehicle.id,
+      vehicle_type: trip!.vehicleName,
+    };
+
+    const draft: BookingDraft = {
+      routeId,
+      tripId: trip!.tripId,
+      routeName: trip!.routeName,
+      departureTime: trip!.departureTime,
+      vehicleName: trip!.vehicleName,
+      seatNumbers: [...selectedSeats].sort((a, b) => Number(a) - Number(b)),
+      pickupPointId,
+      pickupPoint: pickupStop!.stopName,
+      dropoffPointId,
+      dropoffPoint: dropoffStop!.stopName,
+      bookingTypeId,
+      bookingTypeName: selectedFare!.typeName,
+      farePerSeat: selectedFare!.farePerSeat!,
+      customerName: customerName.trim(),
+      contactPhone: `${phonePrefix} ${normalizedPhone}`,
+      driverNote: note.trim(),
+      pickupAddress: pickup.trim(),
+      dropoffAddress: destination.trim(),
     };
 
     setSubmitting(true);
 
     try {
+      sessionStorage.setItem("bookingReview", JSON.stringify({ booking: payload, draft, vehicle_name: selectedVehicle.name }));
       // Chuyển sang trang xác nhận và gửi dữ liệu qua React Router state.
       navigate("/booking/confirm", {
         state: {
           booking: payload,
+          draft,
           estimated_total: totalPrice,
           vehicle_name: selectedVehicle.name,
         },
@@ -393,9 +500,20 @@ export default function BookingPage() {
                   Lộ trình di chuyển
                 </h2>
                 <span className="text-[9px] text-slate-500">
-                  Chọn địa chỉ trên bản đồ
+                  Chọn điểm dừng của tuyến; bản đồ để tham khảo địa chỉ
                 </span>
               </div>
+
+              <label className="mb-3 block text-[10px] font-bold text-slate-700">
+                Tuyến đường
+                <select value={routeId} className={inputClass} onChange={(event) => {
+                  setRouteId(event.target.value); setTrips([]); setVehicleId(""); setTrip(null); setSeats(null);
+                  setSelectedSeats([]); setPickupPointId(""); setDropoffPointId(""); clearError();
+                }}>
+                  <option value="">Chọn tuyến đường</option>
+                  {routes.map((route) => <option key={route.routeId} value={route.routeId}>{route.origin} → {route.destination}</option>)}
+                </select>
+              </label>
 
               <div className="space-y-3 rounded-xl bg-[#f0f2ff] p-3">
                 <div>
@@ -406,10 +524,18 @@ export default function BookingPage() {
                   <GoogleMapLocationPicker
                     label=""
                     value={pickup}
-                    placeholder="Nhập hoặc chọn địa chỉ điểm đón"
+                    placeholder="Xem hoặc tìm địa chỉ điểm đón trên bản đồ"
                     onChange={updatePickup}
                     markerColor="#2563eb"
                   />
+                  <select value={pickupPointId} className={`${inputClass} mt-2`} disabled={!trip} onChange={(event) => {
+                    const stop = trip?.stops.find((item) => item.stopId === event.target.value);
+                    setPickupPointId(event.target.value); setDropoffPointId(""); setPickup(stop?.address || stop?.stopName || "");
+                  }}>
+                    <option value="">Chọn điểm đón trên tuyến</option>
+                    {trip?.stops.filter((stop) => stop.type === "PICKUP" || stop.type === "BOTH").map((stop) =>
+                      <option key={stop.stopId} value={stop.stopId}>{stop.stopName} — {stop.address}</option>)}
+                  </select>
                 </div>
 
                 <div>
@@ -420,15 +546,23 @@ export default function BookingPage() {
                   <GoogleMapLocationPicker
                     label=""
                     value={destination}
-                    placeholder="Nhập hoặc chọn địa chỉ điểm đến"
+                    placeholder="Xem hoặc tìm địa chỉ điểm đến trên bản đồ"
                     onChange={updateDestination}
                     markerColor="#ef4444"
                   />
+                  <select value={dropoffPointId} className={`${inputClass} mt-2`} disabled={!pickupPointId} onChange={(event) => {
+                    const stop = trip?.stops.find((item) => item.stopId === event.target.value);
+                    setDropoffPointId(event.target.value); setDestination(stop?.address || stop?.stopName || "");
+                  }}>
+                    <option value="">Chọn điểm trả sau điểm đón</option>
+                    {dropoffStops.map((stop) =>
+                      <option key={stop.stopId} value={stop.stopId}>{stop.stopName} — {stop.address}</option>)}
+                  </select>
                 </div>
 
                 <div>
                   <p className="mb-1.5 text-[10px] text-slate-500">
-                    Gợi ý địa điểm phổ biến tại TP. Hồ Chí Minh:
+                    Gợi ý tra cứu trên bản đồ (vẫn cần chọn điểm dừng hợp lệ):
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {[
@@ -487,6 +621,9 @@ export default function BookingPage() {
                   </button>
                 ))}
               </div>
+              {tripType !== "one-way" && <p className="mb-3 text-[10px] text-amber-700">
+                Hình thức này đang được giới thiệu; API đặt chuyến hiện chỉ hỗ trợ một chiều.
+              </p>}
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
@@ -504,6 +641,8 @@ export default function BookingPage() {
                     value={departureDate}
                     onChange={(event) => {
                       setDepartureDate(event.target.value);
+                      setTrips([]); setVehicleId(""); setTrip(null); setSeats(null);
+                      setSelectedSeats([]); setPickupPointId(""); setDropoffPointId("");
                       clearError();
                     }}
                     className={inputClass}
@@ -516,16 +655,13 @@ export default function BookingPage() {
                     className="mb-1 flex items-center gap-1 text-[10px] font-bold"
                   >
                     <Clock3 size={12} className="text-blue-700" />
-                    Giờ đón dự kiến
+                    Giờ khởi hành của chuyến đã chọn
                   </label>
                   <input
                     id="departure-time"
                     type="time"
                     value={departureTime}
-                    onChange={(event) => {
-                      setDepartureTime(event.target.value);
-                      clearError();
-                    }}
+                    readOnly
                     className={inputClass}
                   />
                 </div>
@@ -544,12 +680,13 @@ export default function BookingPage() {
                     value={seatCount}
                     onChange={(event) => {
                       setSeatCount(Number(event.target.value));
+                      setSelectedSeats([]);
                       clearError();
                     }}
                     className={inputClass}
                   >
                     {Array.from(
-                      { length: selectedVehicle.seats },
+                      { length: Math.max(1, selectedVehicle.availableSeats) },
                       (_, index) => index + 1,
                     ).map((count) => (
                       <option key={count} value={count}>
@@ -578,7 +715,7 @@ export default function BookingPage() {
                   <span className="rounded bg-blue-100 px-1.5 py-1 text-[10px] text-blue-700">
                     03
                   </span>
-                  Chọn phân hạng xe GoRide
+                  Chọn chuyến và xe GoRide
                 </h2>
                 <span className="text-[9px] font-bold text-emerald-700">
                   Giá tham khảo
@@ -595,8 +732,12 @@ export default function BookingPage() {
                       type="button"
                       onClick={() => {
                         setVehicleId(vehicle.id);
+                        const chosen = trips.find((option) => option.tripId === vehicle.id);
+                        if (chosen) setDepartureTime(new Date(chosen.departureTime).toTimeString().slice(0, 5));
+                        setTrip(null); setSeats(null); setSelectedSeats([]);
+                        setPickupPointId(""); setDropoffPointId(""); setBookingTypeId("");
                         setSeatCount((current) =>
-                          Math.min(current, vehicle.seats),
+                          Math.min(current, vehicle.availableSeats),
                         );
                         clearError();
                       }}
@@ -645,7 +786,7 @@ export default function BookingPage() {
                         </p>
                         <div className="flex flex-wrap items-center justify-between gap-1">
                           <span className="text-sm font-extrabold text-blue-700">
-                            {formatMoney(vehicle.price)}
+                            {vehicle.price > 0 ? formatMoney(vehicle.price) : "Giá theo loại vé"}
                           </span>
                           <span className="rounded bg-emerald-100 px-1.5 py-1 text-[9px] font-bold text-emerald-700">
                             {vehicle.tag}
@@ -656,14 +797,69 @@ export default function BookingPage() {
                   );
                 })}
               </div>
+              {routeId && displayTrips.length === 0 && <p className="mt-3 text-xs text-slate-500">
+                Chưa có chuyến đang mở cho tuyến và ngày đã chọn.
+              </p>}
+              {displayTrips.length === 0 && <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {VEHICLE_TIERS.map((tier) => <div key={tier.seats} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
+                  <p className="font-extrabold text-slate-800">{tier.name} · {tier.tag}</p>
+                  <p className="mt-1 leading-5 text-slate-600">{tier.description}</p>
+                  <p className="mt-2 text-slate-500">Chọn tuyến và ngày đi để xem lịch xe, giá thực tế.</p>
+                </div>)}
+              </div>}
             </section>
+
+            {trip && seats && <section>
+              <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold">
+                <span className="rounded bg-blue-100 px-1.5 py-1 text-[10px] text-blue-700">04</span>
+                Chọn ghế và loại vé
+              </h2>
+              <div className="rounded-xl bg-[#f0f2ff] p-3">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs font-semibold">Còn {seats.availableSeats}/{seats.totalSeats} ghế · Chọn {seatCount} ghế</p>
+                  <button type="button" className="text-xs font-bold text-blue-700" onClick={async () => {
+                    try {
+                      const current = await bookingApi.seats(trip.tripId);
+                      setSeats(current);
+                      setSelectedSeats((previous) => previous.filter((seat) => !current.bookedSeats.includes(seat)));
+                    } catch (cause) { setError(bookingErrorMessage(cause)); }
+                  }}>Cập nhật chỗ trống</button>
+                </div>
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+                  {Array.from({ length: seats.totalSeats }, (_, index) => String(index + 1)).map((seat) => {
+                    const booked = seats.bookedSeats.includes(seat);
+                    const selected = selectedSeats.includes(seat);
+                    return <button key={seat} type="button" disabled={booked} aria-pressed={selected}
+                      aria-label={`Ghế ${seat}${booked ? " đã đặt" : ""}`}
+                      onClick={() => {
+                        if (!selected && selectedSeats.length >= seatCount) {
+                          setError(`Chỉ chọn ${seatCount} ghế cho đơn này.`); return;
+                        }
+                        setSelectedSeats((previous) => selected ? previous.filter((item) => item !== seat) : [...previous, seat]);
+                        clearError();
+                      }}
+                      className={`rounded-lg border px-2 py-2 text-xs font-bold ${booked ? "cursor-not-allowed bg-slate-200 text-slate-400" : selected ? "border-blue-700 bg-blue-700 text-white" : "border-slate-200 bg-white hover:border-blue-400"}`}>
+                      {seat}
+                    </button>;
+                  })}
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {trip.fareOptions.map((option) => <button key={option.bookingTypeId} type="button"
+                  disabled={option.farePerSeat === null} onClick={() => setBookingTypeId(option.bookingTypeId)}
+                  className={`rounded-xl border p-3 text-left text-xs ${bookingTypeId === option.bookingTypeId ? "border-blue-600 bg-blue-50" : "border-slate-200 hover:border-blue-300"}`}>
+                  <span className="font-extrabold">{option.typeName}</span>
+                  <span className="mt-1 block text-slate-500">{option.farePerSeat === null ? "Chưa có giá" : `${formatMoney(option.farePerSeat)}/ghế`}</span>
+                </button>)}
+              </div>
+            </section>}
 
             {/* 04 - Liên hệ */}
             <section>
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="flex items-center gap-2 text-sm font-extrabold">
                   <span className="rounded bg-blue-100 px-1.5 py-1 text-[10px] text-blue-700">
-                    04
+                    05
                   </span>
                   Thông tin liên hệ & ghi chú
                 </h2>
@@ -865,7 +1061,7 @@ export default function BookingPage() {
                   <span className="text-slate-500">
                     Giá tham khảo / khách
                   </span>
-                  <b>{formatMoney(selectedVehicle.price)}</b>
+                  <b>{selectedFare?.farePerSeat == null ? "Chưa có giá" : formatMoney(selectedFare.farePerSeat)}</b>
                 </div>
                 <div className="flex justify-between gap-3">
                   <span className="text-slate-500">Khởi hành</span>
@@ -884,7 +1080,7 @@ export default function BookingPage() {
                     </p>
                   </div>
                   <span className="text-xl font-extrabold tracking-tight text-blue-700 sm:text-2xl">
-                    {formatMoney(totalPrice)}
+                    {selectedFare?.farePerSeat == null ? "Chưa có giá" : formatMoney(totalPrice)}
                   </span>
                 </div>
               </div>

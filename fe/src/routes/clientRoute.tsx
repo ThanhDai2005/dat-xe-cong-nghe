@@ -15,6 +15,8 @@ import TripPage from "@/pages/client/TripPage";
 import BookingPage from "@/pages/client/BookingPage";
 import TripDetailPage from "@/pages/client/TripDetailPage";
 import BookingConfirmPage from "@/pages/client/BookingConfirmPage";
+import BookingPaymentPage from "@/pages/client/BookingPaymentPage";
+import PaymentResultPage from "@/pages/client/PaymentResultPage";
 
 const clientRoute = {
   path: "/",
@@ -52,6 +54,8 @@ const clientRoute = {
         },
         { path: "booking", element: <BookingPage /> },
         { path: "booking/confirm", element: <BookingConfirmPage /> },
+        { path: "booking/payment/:bookingId", element: <BookingPaymentPage /> },
+        { path: "booking/result/:bookingId", element: <PaymentResultPage /> },
         { path: "services", element: <ServicePage /> },
         { path: "fares", element: <FarePage /> },
         { path: "support", element: <SupportPage /> },
