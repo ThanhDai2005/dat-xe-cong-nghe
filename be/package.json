@@ -10,7 +10,8 @@
     "build:test": "tsc -p tsconfig.test.json",
     "test": "npm run build:test && node --test \"dist-test/test/unit/*.test.js\"",
     "test:e2e": "node --test test/e2e/auth.e2e.test.mjs",
-    "test:booking": "node --test test/e2e/booking.e2e.test.mjs"
+    "test:booking": "node --test test/e2e/booking.e2e.test.mjs",
+    "test:cancellation": "node --test test/e2e/cancellation.e2e.test.mjs"
   },
   "keywords": [],
   "author": "",

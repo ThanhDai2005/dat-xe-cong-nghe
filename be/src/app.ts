@@ -7,6 +7,7 @@ import { otpRouter } from "./auth/otp";
 import adminRouter from "./admin/adminRouter";
 import { errorHandler } from "./core/errors";
 import { bookingRouter } from "./booking/routes";
+import { cancellationRouter } from "./booking/cancellation";
 
 export const app = express();
 app.use(cors({ origin: true }));
@@ -18,5 +19,6 @@ for (const prefix of ["/api/auth", "/api/v1/auth"]) {
 app.use("/api/v1/admin", adminRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/v1", bookingRouter);
+app.use("/api/v1", cancellationRouter);
 app.use((_req, res) => res.status(404).json({ success: false, message: "Route không tồn tại" }));
 app.use(errorHandler);
