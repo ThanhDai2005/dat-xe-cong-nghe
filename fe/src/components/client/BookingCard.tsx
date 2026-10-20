@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MapPin,
@@ -16,17 +16,18 @@ import {
   MapPinned,
 } from "lucide-react";
 
-import {
-  ROUTES,
-  createDemoTrips,
-  formatMoney,
-  formatDateTime,
-} from "./bookingCardData";
+import { ROUTES, formatMoney, formatDateTime } from "./bookingCardData";
 
 import type { RouteOption, Trip } from "./bookingCardData";
 
 import { isAuthenticated } from "@/services/auth.service";
+import { bookingApi, bookingErrorMessage } from "@/services/booking.service";
 import GoogleMapLocationPicker from "@/components/client/GoogleMapLocationPicker";
+
+const today = () => {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
 
 export default function BookingCard() {
   const navigate = useNavigate();
@@ -35,6 +36,11 @@ export default function BookingCard() {
   const [pickup, setPickup] = useState("");
   const [destination, setDestination] = useState("");
   const [seatCount, setSeatCount] = useState(1);
+  const [departureDate, setDepartureDate] = useState(today);
+  const [routes, setRoutes] = useState<RouteOption[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [searching, setSearching] = useState(false);
+  const searchEpoch = useRef(0);
 
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [selectedTripId, setSelectedTripId] = useState("");
@@ -42,14 +48,24 @@ export default function BookingCard() {
   const [notice, setNotice] = useState("");
 
   const selectedRoute: RouteOption | undefined = useMemo(
-    () => ROUTES.find((route) => route.id === routeId),
-    [routeId],
+    () => routes.find((route) => route.id === routeId),
+    [routeId, routes],
   );
 
-  const trips: Trip[] = useMemo(() => {
-    if (!selectedRoute) return [];
-    return createDemoTrips(selectedRoute);
-  }, [selectedRoute]);
+  useEffect(() => {
+    let active = true;
+    bookingApi.routes()
+      .then((rows) => {
+        if (active) setRoutes(rows.map((route) => ({
+          id: route.routeId,
+          name: `${route.origin} → ${route.destination}`,
+          pricePerSeat: 0,
+          points: 0,
+        })));
+      })
+      .catch((cause) => { if (active) setError(bookingErrorMessage(cause)); });
+    return () => { active = false; };
+  }, []);
 
   const availableTrips = useMemo(
     () => trips.filter((trip) => trip.availableSeats >= seatCount),
@@ -65,19 +81,20 @@ export default function BookingCard() {
     ? selectedTrip.pricePerSeat * seatCount
     : 0;
 
-  const totalPoints = selectedTrip
-    ? selectedTrip.points * seatCount
-    : 0;
-
   const handleRouteChange = (value: string) => {
+    searchEpoch.current += 1;
+    setSearching(false);
     setRouteId(value);
     setSelectedTripId("");
     setSearchPerformed(false);
+    setTrips([]);
     setError("");
     setNotice("");
   };
 
   const handleSwapLocations = () => {
+    searchEpoch.current += 1;
+    setSearching(false);
     setPickup(destination);
     setDestination(pickup);
     setSelectedTripId("");
@@ -92,17 +109,13 @@ export default function BookingCard() {
       return false;
     }
 
-    if (!pickup.trim()) {
-      setError("Vui lòng chọn điểm đón trên Google Maps.");
-      return false;
-    }
-
-    if (!destination.trim()) {
-      setError("Vui lòng chọn điểm đến trên Google Maps.");
+    if (!departureDate) {
+      setError("Vui lòng chọn ngày khởi hành.");
       return false;
     }
 
     if (
+      pickup.trim() && destination.trim() &&
       pickup.trim().toLocaleLowerCase("vi") ===
       destination.trim().toLocaleLowerCase("vi")
     ) {
@@ -118,7 +131,7 @@ export default function BookingCard() {
     return true;
   };
 
-  const handleSearchTrips = () => {
+  const handleSearchTrips = async () => {
     setError("");
     setNotice("");
     setSelectedTripId("");
@@ -126,10 +139,26 @@ export default function BookingCard() {
 
     if (!validateLocations()) return;
 
-    setSearchPerformed(true);
-
-    if (availableTrips.length === 0) {
-      setNotice("Hiện chưa có chuyến phù hợp với số ghế đã chọn.");
+    const epoch = ++searchEpoch.current;
+    setSearching(true);
+    try {
+      const rows = await bookingApi.trips(routeId, departureDate, seatCount);
+      if (epoch !== searchEpoch.current) return;
+      setTrips(rows.map((trip) => ({
+        id: trip.tripId,
+        routeId,
+        departureAt: trip.departureTime,
+        availableSeats: trip.availableSeats,
+        vehicle: trip.vehicleType,
+        pricePerSeat: trip.price ?? 0,
+        points: 0,
+      })));
+      setSearchPerformed(true);
+      if (rows.length === 0) setNotice("Hiện chưa có chuyến phù hợp với số ghế đã chọn.");
+    } catch (cause) {
+      if (epoch === searchEpoch.current) setError(bookingErrorMessage(cause));
+    } finally {
+      if (epoch === searchEpoch.current) setSearching(false);
     }
   };
 
@@ -163,10 +192,7 @@ export default function BookingCard() {
       pickup: pickup.trim(),
       destination: destination.trim(),
       departureAt: selectedTrip.departureAt,
-      price: String(totalPrice),
-      points: String(totalPoints),
       vehicle: selectedTrip.vehicle,
-      source: "demo",
     });
 
     const bookingUrl = `/booking?${params.toString()}`;
@@ -251,7 +277,7 @@ export default function BookingCard() {
               className={inputClass}
             >
               <option value="">-- Chọn tuyến đường --</option>
-              {ROUTES.map((route) => (
+              {routes.map((route) => (
                 <option key={route.id} value={route.id}>
                   {route.name}
                 </option>
@@ -263,6 +289,24 @@ export default function BookingCard() {
                 Lưu ý: {selectedRoute.note}
               </p>
             )}
+            {routes.length === 0 && !error && (
+              <div className="mt-2 rounded-xl border border-amber-100 bg-amber-50 p-3 text-xs text-amber-900">
+                <p className="font-bold">Hiện chưa có lịch chuyến để đặt.</p>
+                <p className="mt-1">Các tuyến và giá tham khảo của GoRide:</p>
+                <ul className="mt-2 space-y-1">
+                  {ROUTES.map((route) => <li key={route.id}>{route.name} · {formatMoney(route.pricePerSeat)}/ghế</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="booking-departure-date" className="mb-1.5 block text-sm font-bold text-slate-700">
+              Ngày khởi hành
+            </label>
+            <input id="booking-departure-date" type="date" min={today()} value={departureDate}
+              onChange={(event) => { searchEpoch.current += 1; setSearching(false); setDepartureDate(event.target.value); setTrips([]); setSearchPerformed(false); setSelectedTripId(""); }}
+              className={inputClass} />
           </div>
 
           {/* Điểm đón */}
@@ -272,6 +316,8 @@ export default function BookingCard() {
               value={pickup}
               placeholder="Nhấn để chọn điểm đón trên Google Maps"
               onChange={(address: string) => {
+                searchEpoch.current += 1;
+                setSearching(false);
                 setPickup(address);
                 setError("");
                 setNotice("");
@@ -294,6 +340,8 @@ export default function BookingCard() {
               value={destination}
               placeholder="Nhấn để chọn điểm đến trên Google Maps"
               onChange={(address: string) => {
+                searchEpoch.current += 1;
+                setSearching(false);
                 setDestination(address);
                 setError("");
                 setNotice("");
@@ -310,6 +358,9 @@ export default function BookingCard() {
           </div>
 
           {/* Đổi điểm */}
+          <p className="text-xs leading-5 text-slate-500">
+            Vị trí trên bản đồ để tham khảo; điểm đón/trả chính thức được chọn từ điểm dừng của tuyến ở bước tiếp theo.
+          </p>
           <div className="flex justify-center">
             <button
               type="button"
@@ -345,6 +396,8 @@ export default function BookingCard() {
                 id="booking-seats"
                 value={seatCount}
                 onChange={(event) => {
+                  searchEpoch.current += 1;
+                  setSearching(false);
                   setSeatCount(Number(event.target.value));
                   setSelectedTripId("");
                   setSearchPerformed(false);
@@ -372,9 +425,9 @@ export default function BookingCard() {
                 Giá vé theo tuyến
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                {selectedRoute
-                  ? `${formatMoney(selectedRoute.pricePerSeat)} / ghế`
-                  : "Chọn tuyến để xem giá vé"}
+                {selectedTrip && selectedTrip.pricePerSeat > 0
+                  ? `${formatMoney(selectedTrip.pricePerSeat)} / ghế`
+                  : "Giá được xác nhận khi chọn chuyến"}
               </p>
             </div>
           </div>
@@ -383,10 +436,11 @@ export default function BookingCard() {
           <button
             type="button"
             onClick={handleSearchTrips}
+            disabled={searching}
             className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 active:translate-y-0"
           >
             <MapPin size={17} />
-            Tìm chuyến xe
+            {searching ? "Đang tìm chuyến..." : "Tìm chuyến xe"}
             <ArrowRight size={17} />
           </button>
 
@@ -469,10 +523,10 @@ export default function BookingCard() {
 
                           <div className="shrink-0 text-right">
                             <p className="text-sm font-extrabold text-blue-700 sm:text-base">
-                              {formatMoney(tripTotal)}
+                              {trip.pricePerSeat > 0 ? formatMoney(tripTotal) : "Xem giá ở bước tiếp theo"}
                             </p>
                             <p className="mt-1 text-[10px] text-slate-500">
-                              {formatMoney(trip.pricePerSeat)} / ghế
+                              {trip.pricePerSeat > 0 ? `${formatMoney(trip.pricePerSeat)} / ghế` : "Giá theo loại vé"}
                             </p>
 
                             <div
@@ -535,7 +589,7 @@ export default function BookingCard() {
                         Tổng tiền dự kiến
                       </span>
                       <span className="text-xl font-extrabold text-blue-700">
-                        {formatMoney(totalPrice)}
+                        {selectedTrip.pricePerSeat > 0 ? formatMoney(totalPrice) : "Xác nhận ở bước tiếp theo"}
                       </span>
                     </div>
 
@@ -545,7 +599,7 @@ export default function BookingCard() {
                         Điểm dự kiến
                       </span>
                       <span className="font-bold text-blue-700">
-                        {totalPoints.toLocaleString("vi-VN")} điểm
+                        Chưa cấu hình
                       </span>
                     </div>
                   </div>

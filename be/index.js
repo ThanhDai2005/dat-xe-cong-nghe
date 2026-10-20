@@ -1,8 +1,8 @@
 
 const path = require("path");
-
 require("dotenv").config({
   path: path.join(__dirname, ".env"),
+  quiet: true,
 });
 
 const express = require("express");
@@ -62,8 +62,12 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 // ========================================
 const authRoutes = require("./src/auth/authRoutes");
+const customerRoutes = require("./src/customer/customerRoutes");
+const adminRoutes = require("./src/admin/adminRoutes");
 
 app.use("/api/auth", authRoutes);
+app.use("/api/customer/v1", customerRoutes);
+app.use("/api/v1/admin", adminRoutes);
 
 // ========================================
 // Route kiểm tra server
@@ -96,6 +100,14 @@ app.use((err, req, res, next) => {
     });
   }
 
+  if (err.statusCode) {
+    return res.status(err.statusCode).json({
+      success: false,
+      message: err.message,
+      ...(err.code ? { code: err.code } : {}),
+    });
+  }
+
   console.error("Server error:", err);
 
   res.status(500).json({
@@ -107,6 +119,11 @@ app.use((err, req, res, next) => {
 // ========================================
 // Start server
 // ========================================
-app.listen(PORT, () => {
-  console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
-});
+let server = null;
+if (require.main === module) {
+  server = app.listen(PORT, () => {
+    console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
+  });
+}
+
+module.exports = { app, server };
