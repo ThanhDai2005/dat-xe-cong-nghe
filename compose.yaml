@@ -1,0 +1,69 @@
+name: goride-booking
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: goride
+      MYSQL_USER: goride
+      MYSQL_PASSWORD: goride_local
+      MYSQL_ROOT_PASSWORD: root_local_only
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3308}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot_local_only --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:${MAILPIT_PORT:-8026}:8025"
+
+  api:
+    build: ./be
+    restart: on-failure
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: goride
+      DB_PASSWORD: goride_local
+      DB_NAME: goride
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-local-booking-development-secret-change-before-deployment}
+      APP_BASE_URL: http://localhost:${API_PORT:-3100}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMS_PROVIDER: console
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      MAPS_PROVIDER: ${MAPS_PROVIDER:-mock}
+      MAPS_MOCK_DISTANCE_METERS: ${MAPS_MOCK_DISTANCE_METERS:-10000}
+    ports:
+      - "127.0.0.1:${API_PORT:-3100}:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    command: ["sh", "-c", "node dist/scripts/migrate.js && node dist/index.js"]
+
+volumes:
+  mysql_data:

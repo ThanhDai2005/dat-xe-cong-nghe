@@ -1,4 +1,7 @@
 node_modules/
+be/dist-test/
+be/.env.docker
+!be/.env.docker.example
 .env
 !.env.example
 jsconfig.json
@@ -45,3 +48,7 @@ docs/
 
 # Giữ lại file hướng dẫn README.md của dự án (nếu có)
 !README.md
+
+# Keep task documentation local; do not include it in task pushes.
+/README.md
+/be/README.md

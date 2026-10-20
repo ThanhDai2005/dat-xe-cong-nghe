@@ -1,24 +1,40 @@
 {
-  "name": "be",
+  "name": "goride-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "migrate": "tsx src/scripts/migrate.ts",
+    "build:test": "tsc -p tsconfig.test.json",
+    "test": "npm run build:test && node --test \"dist-test/test/unit/*.test.js\"",
+    "test:e2e": "node --test test/e2e/auth.e2e.test.mjs",
+    "test:booking": "node --test test/e2e/booking.e2e.test.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "argon2": "^0.45.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.7",
     "express": "^5.3.0",
+    "google-auth-library": "^10.4.1",
     "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.24.5",
-    "uuid": "^14.0.3"
+    "nodemailer": "^10.1.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.4",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.10.1",
+    "@types/nodemailer": "^7.0.5",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   }
 }
