@@ -1,3 +1,6 @@
+/* Bootstrap hỗ trợ các trang cũ; utility Tailwind được ưu tiên khi cùng khai báo. */
+@layer theme, base, bootstrap, components, utilities;
+@import "bootstrap/dist/css/bootstrap.min.css" layer(bootstrap);
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -6,7 +9,7 @@
 
 /* ══════════════════════════════════════════════════════════════
    GoRide Design System — Material Design 3 Color Tokens
-   Source: stitch_goride_web_app_homepage/*/tailwind-config
+   Source: stitch_goride_web_app_homepage — tailwind-config
    ══════════════════════════════════════════════════════════════ */
 @theme inline {
   --font-sans:    "Be Vietnam Pro", system-ui, sans-serif;

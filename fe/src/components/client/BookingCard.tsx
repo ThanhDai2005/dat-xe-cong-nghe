@@ -351,7 +351,7 @@ export default function BookingCard() {
                   setError("");
                   setNotice("");
                 }}
-                className={`${inputClass} pl-11`}
+                className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-sm text-slate-800 outline-none transition hover:border-blue-200 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
               >
                 {[1, 2, 3, 4].map((count) => (
                   <option key={count} value={count}>
