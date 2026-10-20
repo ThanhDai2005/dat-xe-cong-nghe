@@ -28,10 +28,10 @@ class VehicleRepository {
     const total = countRows[0].total;
 
     const selectSql = `
-      SELECT 
-        v.id, 
-        v.license_plate, 
-        v.seat_count, 
+      SELECT
+        v.id,
+        v.license_plate,
+        v.seat_count,
         v.vehicle_status,
         dp.id AS assigned_driver_id,
         u.full_name AS assigned_driver_name,
@@ -56,10 +56,10 @@ class VehicleRepository {
 
   async findById(id) {
     const [rows] = await db.query(
-      `SELECT 
-        v.id, 
-        v.license_plate, 
-        v.seat_count, 
+      `SELECT
+        v.id,
+        v.license_plate,
+        v.seat_count,
         v.vehicle_status,
         dp.id AS assigned_driver_id,
         u.full_name AS assigned_driver_name,

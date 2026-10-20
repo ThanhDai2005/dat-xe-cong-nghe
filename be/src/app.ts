@@ -8,11 +8,18 @@ import adminRouter from "./admin/adminRouter";
 import { errorHandler } from "./core/errors";
 import { bookingRouter } from "./booking/routes";
 import { cancellationRouter } from "./booking/cancellation";
+import { db } from "./database";
+import { redis } from "./redis";
 
 export const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: "32kb" }));
-app.get("/health", (_req, res) => res.json({ status: "ok" }));
+app.get("/health", async (_req, res) => {
+  try {
+    await Promise.all([db.query("SELECT 1"), redis.ping()]);
+    res.json({ status: "ok" });
+  } catch { res.status(503).json({ status: "unavailable" }); }
+});
 for (const prefix of ["/api/auth", "/api/v1/auth"]) {
   app.use(prefix, authRouter, registerRouter, googleRouter, otpRouter);
 }
