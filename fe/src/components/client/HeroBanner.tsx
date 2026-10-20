@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import BookingCard from "@/components/client/BookingCard";
+import BookingCard from "@/components/client/RequestBookingCard";
 import {
   ArrowRight,
   Phone,

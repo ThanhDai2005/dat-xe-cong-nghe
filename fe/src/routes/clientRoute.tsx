@@ -11,10 +11,7 @@ import ServicePage from "@/pages/client/ServicePage";
 import FarePage from "@/pages/client/FarePage";
 import SupportPage from "@/pages/client/SupportPage";
 import ProfilePage from "@/pages/client/ProfilePage";
-import TripPage from "@/pages/client/TripPage";
-import BookingPage from "@/pages/client/BookingPage";
-import TripDetailPage from "@/pages/client/TripDetailPage";
-import BookingConfirmPage from "@/pages/client/BookingConfirmPage";
+import { LiveBookingPage, LiveBookingConfirmPage, LiveTripsPage, LiveTripDetailPage } from "@/pages/client/LiveBooking";
 
 const clientRoute = {
   path: "/",
@@ -50,20 +47,21 @@ const clientRoute = {
           index: true,
           element: <HomePage />,
         },
-        { path: "booking", element: <BookingPage /> },
-        { path: "booking/confirm", element: <BookingConfirmPage /> },
         { path: "services", element: <ServicePage /> },
         { path: "fares", element: <FarePage /> },
         { path: "support", element: <SupportPage /> },
         {
           element: <PrivateRouter />,
           children: [
+            { path: "booking", element: <LiveBookingPage /> },
+            { path: "booking/confirm", element: <LiveBookingConfirmPage /> },
+            { path: "booking/success/:tripId", element: <LiveTripDetailPage /> },
             {
               path: "profile",
               element: <ProfilePage />,
             },
-            { path: "trips", element: <TripPage /> },
-            { path: "trip/:tripId", element: <TripDetailPage /> },
+            { path: "trips", element: <LiveTripsPage /> },
+            { path: "trip/:tripId", element: <LiveTripDetailPage /> },
           ],
         },
       ],

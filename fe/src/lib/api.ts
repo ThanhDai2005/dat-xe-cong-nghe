@@ -1,19 +1,21 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3100/api";
 
 type RequestOptions = {
   method?: string;
   body?: unknown;
   token?: string;
+  operationKey?: string;
 };
 
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, token } = options;
+  const { method = "GET", body, token, operationKey } = options;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
 
   if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (operationKey) headers["Idempotency-Key"] = operationKey;
 
   const res = await fetch(`${BASE_URL}${endpoint}`, {
     method,
@@ -36,7 +38,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
 export const api = {
   get:   <T>(url: string, token?: string) => request<T>(url, { token }),
-  post:  <T>(url: string, body: unknown, token?: string) => request<T>(url, { method: "POST", body, token }),
+  post:  <T>(url: string, body: unknown, token?: string, operationKey?: string) => request<T>(url, { method: "POST", body, token, operationKey }),
   patch: <T>(url: string, body: unknown, token?: string) => request<T>(url, { method: "PATCH", body, token }),
   del:   <T>(url: string, body?: unknown, token?: string) => request<T>(url, { method: "DELETE", body, token }),
 };

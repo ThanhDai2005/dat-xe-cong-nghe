@@ -12,7 +12,7 @@ type LocationPickerProps = {
   label: string;
   value: string;
   placeholder: string;
-  onChange: (address: string) => void;
+  onChange: (address: string, position?: { lat: number; lng: number }) => void;
   markerColor?: string;
 };
 
@@ -81,7 +81,7 @@ export default function GoogleMapLocationPicker({
     setMarker(position);
     setSearchText(address);
     setMapError("");
-    onChange(address);
+    onChange(address, position);
     map?.panTo(position);
     map?.setZoom(16);
   };
@@ -117,7 +117,7 @@ export default function GoogleMapLocationPicker({
       }
 
       setSearchText(address);
-      onChange(address);
+      onChange(address, position);
     } catch {
       setMapError(
         "Không thể lấy địa chỉ. Vui lòng thử lại.",
@@ -175,6 +175,7 @@ export default function GoogleMapLocationPicker({
                 value={searchText}
                 onChange={(event) => {
                   setSearchText(event.target.value);
+                  onChange(event.target.value);
                   setMapError("");
                 }}
                 placeholder={placeholder}
@@ -260,9 +261,10 @@ export default function GoogleMapLocationPicker({
                     >
                       <input
                         value={searchText}
-                        onChange={(event) =>
-                          setSearchText(event.target.value)
-                        }
+                        onChange={(event) => {
+                          setSearchText(event.target.value);
+                          onChange(event.target.value);
+                        }}
                         placeholder="Tìm tên đường, địa chỉ, địa điểm..."
                         className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-3 text-sm outline-none focus:border-green-500"
                       />
