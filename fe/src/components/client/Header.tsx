@@ -3,150 +3,135 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   Menu,
   X,
-  Car,
+  CarFront,
   User,
   LogOut,
   ChevronRight,
   UserRound,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
 const navigation = [
-  { label: "Trang chủ", to: "/" },
-  { label: "Đặt xe", to: "/booking" },
-  { label: "Dịch vụ", to: "/services" },
-  { label: "Bảng giá", to: "/fares" },
-  { label: "Hỗ trợ", to: "/support" },
+  { name: "Trang chủ", path: "/" },
+  { name: "Đặt xe", path: "/booking" },
+  { name: "Dịch vụ", path: "/services" },
+  { name: "Bảng giá", path: "/fares" },
+  { name: "Hỗ trợ", path: "/support" },
 ];
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
-
-  const getInitial = () => {
-    const name = user?.fullName?.trim();
-    return name ? name.charAt(0).toUpperCase() : null;
-  };
 
   const handleLogout = async () => {
     try {
       await logout();
       closeMobileMenu();
-      toast.success("Đã đăng xuất thành công!");
+      toast.success("Đăng xuất thành công!");
       navigate("/");
     } catch {
-      toast.error("Đăng xuất không thành công. Vui lòng thử lại.");
+      toast.error("Không thể đăng xuất. Vui lòng thử lại!");
     }
   };
 
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    [
-      "relative whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-200",
+  // Menu không gạch chân, vẫn giữ hiệu ứng hover
+  const navLinkClass = (isActive: boolean) =>
+    `inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold
+    !no-underline transition-all duration-200 ease-out
+    ${
       isActive
-        ? "bg-green-50 text-green-700"
-        : "text-slate-600 hover:bg-slate-50 hover:text-green-700",
-    ].join(" ");
-
-  const renderAvatar = (large = false) => (
-    <span
-      className={[
-        "flex shrink-0 items-center justify-center rounded-full bg-green-100 font-bold text-green-700",
-        large ? "h-12 w-12 text-lg" : "h-10 w-10 text-base",
-      ].join(" ")}
-    >
-      {getInitial() || <User size={large ? 22 : 19} />}
-    </span>
-  );
+        ? "text-blue-600"
+        : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+    }`;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/95 shadow-sm backdrop-blur-md">
-      <nav
-        className="mx-auto flex min-h-[76px] max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-10"
-        aria-label="Điều hướng chính"
-      >
+    <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white shadow-sm">
+      <nav className="flex min-h-[72px] w-full items-center justify-between gap-4 px-4 sm:px-6 lg:px-10 xl:px-14">
         {/* LOGO */}
         <Link
           to="/"
           onClick={closeMobileMenu}
-          className="group flex shrink-0 items-center gap-2.5"
           aria-label="GoRide - Trang chủ"
+          className="group flex shrink-0 items-center gap-2.5 !no-underline"
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-600 text-white shadow-lg shadow-green-600/20 transition-transform duration-200 group-hover:scale-105">
-            <Car size={25} strokeWidth={2.4} />
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-200 transition-all duration-300 group-hover:-rotate-3 group-hover:scale-105 group-hover:bg-blue-700">
+            <CarFront size={25} strokeWidth={2.4} />
           </span>
 
-          <span className="text-[25px] font-extrabold tracking-tight text-slate-900">
-            Go<span className="text-green-600">Ride</span>
+          <span className="text-2xl font-extrabold tracking-tight text-gray-900 transition-colors duration-200 group-hover:text-blue-600">
+            Go<span className="text-blue-600">Ride</span>
           </span>
         </Link>
 
         {/* MENU DESKTOP */}
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center gap-1 md:flex lg:gap-2">
           {navigation.map((item) => (
             <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === "/"}
-              className={navLinkClass}
+              key={item.path}
+              to={item.path}
+              end={item.path === "/"}
+              className={({ isActive }) =>
+                `${navLinkClass(isActive)} hover:!no-underline`
+              }
             >
-              {item.label}
+              {item.name}
             </NavLink>
           ))}
         </div>
 
         {/* TÀI KHOẢN DESKTOP */}
-        <div className="hidden shrink-0 items-center gap-3 sm:flex">
+        <div className="hidden shrink-0 items-center gap-3 md:flex">
           {isAuthenticated ? (
             <>
-              <Link
-                to="/profile"
-                className="group flex items-center gap-2.5 rounded-2xl p-1.5 pr-3 transition-colors hover:bg-green-50"
+              <button
+                type="button"
+                onClick={() => navigate("/profile")}
+                className="group flex items-center gap-2 rounded-xl px-3 py-2 transition-colors duration-200 hover:bg-blue-50"
               >
-                {renderAvatar()}
-
-                <span className="hidden max-w-[145px] flex-col lg:flex">
-                  <span className="truncate text-sm font-bold text-slate-800">
-                    {user?.fullName?.trim() || "Tài khoản"}
-                  </span>
-                  <span className="text-xs text-slate-500">
-                    Hồ sơ cá nhân
-                  </span>
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-600 transition-all duration-200 group-hover:bg-blue-600 group-hover:text-white">
+                  <UserRound size={19} />
                 </span>
-              </Link>
+
+                <span className="max-w-[130px] truncate text-sm font-semibold text-gray-700 group-hover:text-blue-600">
+                  {user?.fullName ||
+                    user?.email ||
+                    "Tài khoản"}
+                </span>
+              </button>
 
               <button
                 type="button"
                 onClick={handleLogout}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:scale-95"
               >
                 <LogOut size={17} />
-                <span className="hidden lg:inline">Đăng xuất</span>
+                Đăng xuất
               </button>
             </>
           ) : (
             <>
-              <NavLink
+              <Link
                 to="/login"
-                className={({ isActive }) =>
-                  [
-                    "inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3",
-                    "text-sm font-bold no-underline",
-                    "transition-all duration-300 ease-out",
-                    "focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2",
-                    isActive
-                      ? "bg-green-800 text-white shadow-inner ring-2 ring-green-200"
-                      : "bg-[#00B14F] text-white shadow-md shadow-green-600/20 hover:-translate-y-0.5 hover:bg-[#009944] hover:shadow-lg hover:shadow-green-600/30 active:translate-y-0 active:scale-95",
-                  ].join(" ")
-                }
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 !no-underline transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 hover:!no-underline active:scale-95"
               >
-                <User size={18} />
-                <span>Đăng nhập</span>
-              </NavLink>
+                Đăng nhập
+              </Link>
 
+              <Link
+                to="/register"
+                className="group inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white !no-underline shadow-md shadow-blue-200 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:!no-underline hover:shadow-lg hover:shadow-blue-200 active:translate-y-0 active:scale-95"
+              >
+                Đăng ký
+                <ArrowRight
+                  size={16}
+                  className="transition-transform duration-200 group-hover:translate-x-1"
+                />
+              </Link>
             </>
           )}
         </div>
@@ -155,10 +140,9 @@ export default function Header() {
         <button
           type="button"
           onClick={() => setMobileMenuOpen((open) => !open)}
-          className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition-colors hover:border-green-200 hover:bg-green-50 hover:text-green-700 sm:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-gray-700 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 active:scale-95 md:hidden"
           aria-label={mobileMenuOpen ? "Đóng menu" : "Mở menu"}
           aria-expanded={mobileMenuOpen}
-          aria-controls="goride-mobile-menu"
         >
           {mobileMenuOpen ? <X size={23} /> : <Menu size={23} />}
         </button>
@@ -166,90 +150,82 @@ export default function Header() {
 
       {/* MENU MOBILE */}
       <div
-        id="goride-mobile-menu"
-        className={[
-          "overflow-hidden border-t border-slate-100 bg-white transition-all duration-300 sm:hidden",
+        className={`grid border-t border-gray-100 bg-white transition-[grid-template-rows,opacity] duration-300 ease-in-out md:hidden ${
           mobileMenuOpen
-            ? "visible max-h-[650px] opacity-100"
-            : "invisible max-h-0 border-transparent opacity-0",
-        ].join(" ")}
-        aria-hidden={!mobileMenuOpen}
-        inert={!mobileMenuOpen}
+            ? "grid-rows-[1fr] opacity-100"
+            : "pointer-events-none grid-rows-[0fr] opacity-0"
+        }`}
       >
-        <div className="mx-auto max-w-[1440px] px-4 pb-5 pt-3 sm:px-6">
-          {/* Liên kết điều hướng */}
-          <div className="flex flex-col gap-1">
+        <div className="min-h-0 overflow-hidden">
+          <div className="space-y-1 px-4 py-4 sm:px-6">
             {navigation.map((item) => (
               <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/"}
+                key={item.path}
+                to={item.path}
+                end={item.path === "/"}
                 onClick={closeMobileMenu}
                 className={({ isActive }) =>
-                  [
-                    "flex items-center justify-between rounded-xl px-4 py-3.5 text-sm font-semibold transition-colors",
+                  `flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold !no-underline transition-all duration-200 hover:!no-underline ${
                     isActive
-                      ? "bg-green-50 text-green-700"
-                      : "text-slate-700 hover:bg-slate-50 hover:text-green-700",
-                  ].join(" ")
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-700 hover:translate-x-1 hover:bg-gray-50 hover:text-blue-600"
+                  }`
                 }
               >
-                {item.label}
-                <ChevronRight size={17} />
+                {item.name}
+                <ChevronRight size={17} className="opacity-60" />
               </NavLink>
             ))}
-          </div>
 
-          <div className="my-4 border-t border-slate-100" />
+            <div className="mt-3 border-t border-gray-100 pt-4">
+              {isAuthenticated ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 rounded-xl bg-gray-50 p-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                      <User size={20} />
+                    </span>
 
-          {/* KHU VỰC TÀI KHOẢN */}
-          {isAuthenticated ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 rounded-2xl bg-green-50 p-4">
-                {renderAvatar(true)}
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-500">Xin chào</p>
+                      <p className="truncate text-sm font-bold text-gray-800">
+                        {user?.fullName ||
+                          user?.email ||
+                          "Tài khoản"}
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold text-slate-900">
-                    {user?.fullName?.trim() || "Khách hàng"}
-                  </p>
-                  <p className="truncate text-sm text-slate-500">
-                    {user?.email || "Tài khoản GoRide"}
-                  </p>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 px-4 py-3 text-sm font-semibold text-red-600 transition-colors duration-200 hover:bg-red-50"
+                  >
+                    <LogOut size={17} />
+                    Đăng xuất
+                  </button>
                 </div>
-              </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <Link
+                    to="/login"
+                    onClick={closeMobileMenu}
+                    className="flex items-center justify-center rounded-xl border border-gray-200 px-3 py-3 text-sm font-semibold text-gray-700 !no-underline transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 hover:!no-underline"
+                  >
+                    Đăng nhập
+                  </Link>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Link
-                  to="/profile"
-                  onClick={closeMobileMenu}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-green-200 px-3 py-3 text-sm font-bold text-green-700 transition-colors hover:bg-green-50"
-                >
-                  <UserRound size={17} />
-                  Hồ sơ
-                </Link>
-
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-red-200 px-3 py-3 text-sm font-bold text-red-600 transition-colors hover:bg-red-50"
-                >
-                  <LogOut size={17} />
-                  Đăng xuất
-                </button>
-              </div>
+                  <Link
+                    to="/register"
+                    onClick={closeMobileMenu}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-3 text-sm font-bold text-white !no-underline transition-all duration-200 hover:bg-blue-700 hover:!no-underline active:scale-95"
+                  >
+                    Đăng ký
+                    <ArrowRight size={16} />
+                  </Link>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                to="/login"
-                onClick={closeMobileMenu}
-                className="flex items-center justify-center rounded-xl border border-green-600 px-4 py-3 text-sm font-bold text-green-700 transition-colors hover:bg-green-50"
-              >
-                Đăng nhập
-              </Link>
-
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </header>

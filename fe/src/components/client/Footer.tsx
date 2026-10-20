@@ -1,109 +1,79 @@
 import { Link } from "react-router-dom";
-import {
-  CarFront,
-  Phone,
-  Mail,
-  ArrowUpRight,
-  ShieldCheck,
-  MapPin,
-} from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const linkClass =
-    "inline-flex items-center gap-1 text-sm text-slate-300 no-underline transition-all duration-200 hover:translate-x-1 hover:text-green-400";
+    "block w-fit text-sm leading-6 text-slate-400 no-underline transition-all duration-200 hover:translate-x-1 hover:text-blue-400 hover:no-underline";
 
-  const columnTitleClass =
-    "mb-5 text-base font-bold text-white";
+  const headingClass =
+    "mb-5 text-sm font-bold uppercase tracking-wide text-white";
 
   return (
     <footer
       id="support"
-      className="relative overflow-hidden bg-slate-950 text-white"
+      className="relative w-full overflow-hidden bg-[#101a2e] text-white"
     >
-      {/* Hiệu ứng nền */}
-      <div className="pointer-events-none absolute -left-32 top-10 h-72 w-72 rounded-full bg-green-500/10 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
-
-      <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
-        {/* THÔNG TIN FOOTER */}
-        <div className="grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:gap-12 lg:py-16">
-          {/* THƯƠNG HIỆU */}
-          <div className="lg:col-span-1">
+      <div className="mx-auto w-full px-5 sm:px-8 lg:px-12">
+        {/* Nội dung chính */}
+        <div className="grid grid-cols-1 gap-9 py-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_0.8fr_0.9fr_1fr] lg:gap-12 lg:py-12">
+          {/* Thông tin thương hiệu */}
+          <div className="min-w-0">
             <Link
               to="/"
               aria-label="GoRide - Trang chủ"
-              className="group mb-5 inline-flex items-center gap-3 no-underline"
+              className="group mb-4 inline-flex items-center gap-2 no-underline hover:no-underline"
             >
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-green-500 text-white shadow-lg shadow-green-500/20 transition-all duration-300 group-hover:rotate-[-5deg] group-hover:scale-105 group-hover:bg-green-400">
-                <CarFront size={26} strokeWidth={2.5} />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#2167f5] text-xs font-extrabold text-white shadow-md shadow-blue-500/20 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-blue-500">
+                G
               </span>
 
-              <span className="text-3xl font-extrabold tracking-tight text-white">
-                Go<span className="text-green-400">Ride</span>
+              <span className="text-xl font-extrabold tracking-tight text-white">
+                GoRide
+              </span>
+
+              <span className="ml-1 rounded-full border border-slate-600/60 bg-slate-700/50 px-2 py-1 text-[9px] font-semibold text-slate-300">
+                Customer Web
               </span>
             </Link>
 
-            <p className="mb-6 max-w-sm text-sm leading-7 text-slate-400">
-              Nền tảng công nghệ kết nối hành khách và đối tác tài xế
-              thông minh, mang đến hành trình an toàn, minh bạch chi phí
-              và trải nghiệm di chuyển thuận tiện.
+            <p className="max-w-md text-sm leading-6 text-slate-400">
+              Nền tảng công nghệ kết nối hành khách và đối tác tài xế thông
+              minh, đảm bảo quy trình rõ ràng, minh bạch chi phí và an tâm
+              di chuyển.
             </p>
 
-            {/* THÔNG TIN LIÊN HỆ */}
-            <div className="space-y-4">
-              <a
-                href="tel:19008888"
-                className="group flex items-center gap-3 no-underline"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-green-400 transition-all duration-200 group-hover:border-green-500/40 group-hover:bg-green-500/10">
-                  <Phone size={18} />
-                </span>
+            <div className="mt-4 space-y-2 text-xs leading-5 text-slate-400">
+              <p>
+                Hotline hỗ trợ kỹ thuật:{" "}
+                <a
+                  href="tel:19008888"
+                  className="font-semibold text-slate-300 no-underline transition-colors hover:text-blue-400 hover:no-underline"
+                >
+                  1900 8888 (placeholder)
+                </a>
+              </p>
 
-                <span className="flex flex-col gap-1">
-                  <span className="text-xs text-slate-400">
-                    Hotline hỗ trợ (24/7)
-                  </span>
-                  <span className="text-sm font-bold text-white transition-colors group-hover:text-green-400">
-                    1900 8888
-                  </span>
-                </span>
-              </a>
-
-              <a
-                href="mailto:cskh@goride.vn"
-                className="group flex items-center gap-3 no-underline"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-green-400 transition-all duration-200 group-hover:border-green-500/40 group-hover:bg-green-500/10">
-                  <Mail size={18} />
-                </span>
-
-                <span className="flex min-w-0 flex-col gap-1">
-                  <span className="text-xs text-slate-400">
-                    Email hỗ trợ
-                  </span>
-                  <span className="break-all text-sm font-bold text-white transition-colors group-hover:text-green-400">
-                    cskh@goride.vn
-                  </span>
-                </span>
-              </a>
+              <p>
+                Email hỗ trợ dự án:{" "}
+                <a
+                  href="mailto:support-project@goride.vn"
+                  className="break-all font-semibold text-slate-300 no-underline transition-colors hover:text-blue-400 hover:no-underline"
+                >
+                  support-project@goride.vn
+                </a>
+              </p>
             </div>
           </div>
 
-          {/* ĐIỀU HƯỚNG */}
+          {/* Điều hướng */}
           <div>
-            <h4 className={columnTitleClass}>Điều hướng</h4>
+            <h4 className={headingClass}>Điều hướng</h4>
 
-            <ul className="space-y-4">
+            <ul className="space-y-2.5">
               <li>
                 <Link to="/" className={linkClass}>
                   Trang chủ
-                </Link>
-              </li>
-              <li>
-                <Link to="/booking" className={linkClass}>
-                  Đặt xe ngay
                 </Link>
               </li>
               <li>
@@ -116,14 +86,32 @@ const Footer = () => {
                   Bảng giá
                 </Link>
               </li>
+              <li>
+                <Link to="/services" className={linkClass}>
+                  Khu vực phục vụ
+                </Link>
+              </li>
+              <li>
+                <Link to="/faq" className={linkClass}>
+                  Hỗ trợ / FAQ
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/booking"
+                  className="block w-fit text-sm leading-6 text-blue-400 no-underline transition-all duration-200 hover:translate-x-1 hover:text-blue-300 hover:no-underline"
+                >
+                  Đặt xe
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* KÊNH HỖ TRỢ */}
+          {/* Kênh hỗ trợ */}
           <div>
-            <h4 className={columnTitleClass}>Kênh hỗ trợ</h4>
+            <h4 className={headingClass}>Kênh hỗ trợ</h4>
 
-            <ul className="space-y-4">
+            <ul className="space-y-2.5">
               <li>
                 <Link to="/faq" className={linkClass}>
                   Trung tâm trợ giúp FAQ
@@ -141,23 +129,25 @@ const Footer = () => {
                   rel="noopener noreferrer"
                   className={linkClass}
                 >
-                  Chat qua Zalo
-                  <ArrowUpRight size={14} />
+                  Kênh chat Zalo Official
                 </a>
               </li>
               <li>
-                <a href="mailto:cskh@goride.vn" className={linkClass}>
-                  Gửi email hỗ trợ
+                <a
+                  href="mailto:support-project@goride.vn"
+                  className={linkClass}
+                >
+                  Gửi phản hồi dự án
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* CHÍNH SÁCH */}
+          {/* Chính sách và pháp lý */}
           <div>
-            <h4 className={columnTitleClass}>Chính sách &amp; Pháp lý</h4>
+            <h4 className={headingClass}>Chính sách &amp; Pháp lý</h4>
 
-            <ul className="space-y-4">
+            <ul className="space-y-2.5">
               <li>
                 <Link to="/terms" className={linkClass}>
                   Điều khoản sử dụng
@@ -165,66 +155,44 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/privacy" className={linkClass}>
-                  Chính sách bảo mật
+                  Chính sách bảo mật dữ liệu
                 </Link>
               </li>
               <li>
                 <Link to="/operating-regulations" className={linkClass}>
-                  Quy chế hoạt động
+                  Quy chế hoạt động sàn
                 </Link>
               </li>
               <li>
                 <Link to="/complaint-resolution" className={linkClass}>
-                  Giải quyết khiếu nại
+                  Quy trình giải quyết khiếu nại
                 </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* THÔNG ĐIỆP THƯƠNG HIỆU */}
-        <div className="mb-8 flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/[0.04] p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-500/15 text-green-400">
-              <ShieldCheck size={25} />
-            </span>
-
-            <div>
-              <strong className="text-base font-bold text-white sm:text-lg">
-                An tâm trên mọi hành trình
-              </strong>
-              <p className="mt-1 text-sm leading-6 text-slate-400">
-                Minh bạch chi phí · Hỗ trợ tận tâm · Di chuyển thuận tiện
-              </p>
-            </div>
-          </div>
-
-          <Link
-            to="/booking"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-green-500 px-5 py-3 text-sm font-bold text-white no-underline shadow-lg shadow-green-500/20 transition-all duration-300 hover:-translate-y-1 hover:bg-green-400 hover:shadow-xl hover:shadow-green-500/20 active:translate-y-0 sm:w-fit"
-          >
-            Đặt xe ngay
-            <ArrowUpRight size={18} />
-          </Link>
-        </div>
-
-        {/* FOOTER CUỐI TRANG */}
-        <div className="flex flex-col gap-4 border-t border-white/10 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-center text-xs leading-6 text-slate-500 sm:text-left sm:text-sm">
-            © {currentYear} GoRide Vietnam. All rights reserved.
+        {/* Đường phân cách và bản quyền */}
+        <div className="flex flex-col gap-4 border-t border-slate-700/60 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-center text-xs leading-5 text-slate-500 sm:text-left">
+            © {currentYear} GoRide Vietnam - Project Software Engineering
+            Deliverable.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-5 text-xs text-slate-400 sm:text-sm">
-            <span className="inline-flex items-center gap-2">
-              <MapPin size={15} className="text-green-400" />
-              Việt Nam
-            </span>
-
-            <span className="h-4 w-px bg-white/15" />
-
-            <span className="transition-colors hover:text-green-400">
+          <div className="flex flex-wrap items-center justify-center gap-5 text-xs">
+            <button
+              type="button"
+              className="font-semibold text-slate-300 no-underline transition-colors hover:text-blue-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
               Tiếng Việt (VN)
-            </span>
+            </button>
+
+            <button
+              type="button"
+              className="font-medium text-slate-500 no-underline transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              English (US)
+            </button>
           </div>
         </div>
       </div>
