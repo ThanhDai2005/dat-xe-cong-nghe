@@ -8,6 +8,7 @@ import adminRouter from "./admin/adminRouter";
 import { errorHandler } from "./core/errors";
 import { bookingRouter } from "./booking/routes";
 import { cancellationRouter } from "./booking/cancellation";
+import { lookupRouter } from "./booking/lookup";
 import { db } from "./database";
 import { redis } from "./redis";
 
@@ -27,5 +28,6 @@ app.use("/api/v1/admin", adminRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/v1", bookingRouter);
 app.use("/api/v1", cancellationRouter);
+app.use("/api/v1", lookupRouter);
 app.use((_req, res) => res.status(404).json({ success: false, message: "Route không tồn tại" }));
 app.use(errorHandler);
