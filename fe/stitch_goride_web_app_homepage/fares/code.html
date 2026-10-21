@@ -1,0 +1,630 @@
+<!DOCTYPE html><html lang="vi" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_standard" name="shell-type"><title>GoRide Vietnam - Nền Tảng Di Chuyển Thông Minh</title><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; } .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-secondary": "#ffffff", "inverse-primary": "#b2c5ff", "surface-container-highest": "#dae2fd", "on-primary-fixed": "#001848", "primary-fixed": "#dae2ff", "on-secondary-fixed-variant": "#004c69", "secondary": "#00668a", "on-surface": "#131b2e", "surface-dim": "#d2d9f4", "secondary-fixed": "#c4e7ff", "surface-bright": "#faf8ff", "error": "#ba1a1a", "on-primary": "#ffffff", "tertiary": "#006645", "on-background": "#131b2e", "tertiary-container": "#008259", "on-tertiary-container": "#e1ffec", "surface-container-lowest": "#ffffff", "primary-container": "#1d68f2", "on-tertiary-fixed-variant": "#005236", "primary-fixed-dim": "#b2c5ff", "inverse-surface": "#283044", "on-primary-container": "#f7f6ff", "on-tertiary-fixed": "#002113", "surface-variant": "#dae2fd", "on-error-container": "#93000a", "outline": "#737686", "surface-container-high": "#e2e7ff", "on-primary-fixed-variant": "#0040a2", "background": "#faf8ff", "on-surface-variant": "#424655", "secondary-container": "#40c2fd", "surface-container-low": "#f2f3ff", "tertiary-fixed": "#6ffbbe", "on-secondary-container": "#004d6a", "secondary-fixed-dim": "#7bd0ff", "error-container": "#ffdad6", "primary": "#0050c8", "on-secondary-fixed": "#001e2c", "surface-container": "#eaedff", "surface-tint": "#0055d4", "inverse-on-surface": "#eef0ff", "on-error": "#ffffff", "surface": "#faf8ff", "tertiary-fixed-dim": "#4edea3", "outline-variant": "#c2c6d7", "on-tertiary": "#ffffff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-lg": "1.5rem", "gutter-mobile": "1rem", "space-sm": "0.5rem", "gutter": "1.5rem", "space-2xl": "3.5rem", "space-xl": "2.25rem", "margin": "3rem", "space-md": "1rem", "margin-mobile": "1.25rem", "space-xs": "0.25rem" }, "fontFamily": { "display": ["Be Vietnam Pro"], "label-lg": ["Be Vietnam Pro"], "label-sm": ["Be Vietnam Pro"], "body-sm": ["Be Vietnam Pro"], "label-md": ["Be Vietnam Pro"], "headline-lg": ["Be Vietnam Pro"], "display-mobile": ["Be Vietnam Pro"], "headline-md": ["Be Vietnam Pro"], "body-md": ["Be Vietnam Pro"], "body-lg": ["Be Vietnam Pro"], "headline-sm": ["Be Vietnam Pro"] }, "fontSize": { "display": ["3.25rem", { "lineHeight": "1.15", "letterSpacing": "-0.03em", "fontWeight": "800" }], "label-lg": ["0.9375rem", { "lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "600" }], "label-sm": ["0.6875rem", { "lineHeight": "1.3", "letterSpacing": "0.06em", "fontWeight": "700" }], "body-sm": ["0.8125rem", { "lineHeight": "1.5", "letterSpacing": "0.01em", "fontWeight": "400" }], "label-md": ["0.8125rem", { "lineHeight": "1.35", "letterSpacing": "0.02em", "fontWeight": "600" }], "headline-lg": ["2rem", { "lineHeight": "1.25", "letterSpacing": "-0.02em", "fontWeight": "700" }], "display-mobile": ["2.25rem", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "800" }], "headline-md": ["1.5rem", { "lineHeight": "1.3", "letterSpacing": "-0.015em", "fontWeight": "700" }], "body-md": ["0.9375rem", { "lineHeight": "1.55", "letterSpacing": "0em", "fontWeight": "400" }], "body-lg": ["1.125rem", { "lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400" }], "headline-sm": ["1.25rem", { "lineHeight": "1.35", "letterSpacing": "-0.01em", "fontWeight": "600" }] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(15,23,42,0.04)]"><div class="h-20 max-w-[1280px] mx-auto px-6 flex items-center justify-between gap-6"><div class="flex items-center gap-3 shrink-0"><a class="flex items-center gap-2.5" data-path="trang-chu" href="#"><div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-[0_4px_12px_rgba(0,80,200,0.25)]"><span class="material-symbols-outlined text-[24px]">local_taxi</span></div><span class="font-headline-md text-headline-md text-primary tracking-tight font-extrabold">GoRide</span></a></div><nav class="hidden lg:flex items-center gap-6" data-active-classes="text-primary font-label-lg font-bold bg-primary-fixed/40 px-3 py-1.5 rounded-lg"><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" data-path="trang-chu" href="#">Trang chủ</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" data-path="dat-xe" href="#">Đặt xe</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" data-path="dich-vu" href="#">Dịch vụ</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" data-path="bang-gia" href="#">Bảng giá</a><a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" data-path="ho-tro" href="#">Hỗ trợ</a></nav><div class="flex items-center gap-3 shrink-0"><a class="px-4 py-2.5 rounded-xl text-on-surface font-label-md text-label-md hover:bg-surface-container transition-colors" data-path="dang-nhap" href="#">Đăng nhập</a><a class="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-label-md text-label-md shadow-[0_8px_20px_rgba(0,80,200,0.2)] hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-[0.98]" data-path="dang-ky" href="#">Đăng ký</a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-1 shrink-0"></div></div></div></header><main class="w-full pt-20 bg-background min-h-screen"><div class="flex flex-col w-full">
+<div class="relative w-full overflow-hidden bg-gradient-to-b from-surface-container-high/60 via-background to-background py-8 lg:py-12">
+<div class="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-primary-fixed/30 blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/2 -left-32 w-80 h-80 rounded-full bg-secondary-fixed/40 blur-3xl pointer-events-none"></div>
+<div class="max-w-[1280px] mx-auto px-6 relative z-10 flex flex-col gap-6">
+<nav class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant">
+<a class="hover:text-primary transition-colors flex items-center gap-1.5" data-path="trang-chu" href="#">
+<span class="material-symbols-outlined text-[18px]">home</span>
+          Trang chủ
+        </a>
+<span class="material-symbols-outlined text-[16px] text-outline-variant">chevron_right</span>
+<span class="text-primary font-bold">Bảng giá &amp; Cách tính cước</span>
+</nav>
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pt-2">
+<div class="flex flex-col gap-3 max-w-3xl">
+<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm tracking-wide uppercase w-fit shadow-sm">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+            Chính Sách Giá Chuẩn 2026
+          </div>
+<h1 class="font-headline-lg text-headline-lg lg:text-display text-on-surface tracking-tight font-extrabold">
+            Minh bạch biểu phí &amp; <span class="text-primary">Cách tính cước GoRide</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+            Hiểu rõ công thức tính giá cước để luôn chủ động, kiểm soát lộ trình và an tâm trọn vẹn trong mọi chuyến đi đô thị lẫn liên tỉnh.
+          </p>
+</div>
+<div class="shrink-0 flex items-center gap-3 bg-surface-container-lowest p-2 rounded-2xl shadow-sm">
+<div class="px-4 py-3 rounded-xl bg-tertiary-container/15 flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-tertiary-container text-on-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">price_check</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-tertiary">Cam kết 100%</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Không phí ẩn vô lý</span>
+</div>
+</div>
+</div>
+</div>
+<div class="rounded-2xl bg-surface-container-lowest p-5 lg:p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[28px]">format_image_left</span>
+</div>
+<div class="flex flex-col gap-1 flex-1">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Cam kết minh bạch cước phí</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase">Quy chuẩn GPS</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Mọi cước phí hiển thị trên website là giá ước tính tham khảo theo biểu giá tiêu chuẩn. Cước phí thực tế được chốt khi khách hàng xác nhận lộ trình GPS chính xác tại thời điểm đặt xe, cam kết hiển thị trọn gói trước khi khởi hành.
+          </p>
+</div>
+</div>
+</div>
+</div>
+<div class="max-w-[1280px] mx-auto px-6 py-12 flex flex-col gap-16">
+<section class="flex flex-col gap-8">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div class="flex flex-col gap-1">
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-wider">Chi Tiết Biểu Phí Chuẩn</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">Bảng biểu giá cơ sở toàn hệ thống</h2>
+</div>
+<div class="inline-flex p-1.5 rounded-2xl bg-surface-container gap-1 self-start sm:self-auto" id="fare-tabs">
+<button class="fare-tab-btn active px-4 py-2 rounded-xl font-label-md text-label-md bg-surface-container-lowest text-primary shadow-sm font-bold transition-all" data-tab="urban" type="button">
+            Cước nội thành đô thị
+          </button>
+<button class="fare-tab-btn px-4 py-2 rounded-xl font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all" data-tab="intercity" type="button">
+            Cước liên tỉnh &amp; Đường dài
+          </button>
+<button class="fare-tab-btn px-4 py-2 rounded-xl font-label-md text-label-md text-on-surface-variant hover:text-primary transition-all" data-tab="surcharges" type="button">
+            Phụ phí dịch vụ
+          </button>
+</div>
+</div>
+<div class="fare-pane flex flex-col gap-6" id="tab-urban">
+<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+<div class="rounded-2xl bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-bl-full pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">directions_car</span>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-bold uppercase">Phổ biến nhất</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">GoRide Car 4 Chỗ</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Dòng sedan/hatchback êm ái, máy lạnh tiện nghi</p>
+</div>
+<div class="h-px bg-surface-container-highest"></div>
+<ul class="flex flex-col gap-3 font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center justify-between">
+<span class="text-on-surface-variant">Cước mở cửa (2km đầu):</span>
+<span class="font-bold text-primary font-headline-sm text-headline-sm">20.000đ</span>
+</li>
+<li class="flex items-center justify-between">
+<span class="text-on-surface-variant">Km 3 đến km 25:</span>
+<span class="font-bold">11.000đ / km</span>
+</li>
+<li class="flex items-center justify-between">
+<span class="text-on-surface-variant">Từ km thứ 26 trở đi:</span>
+<span class="font-bold text-tertiary">Giảm 15%</span>
+</li>
+<li class="flex items-center justify-between">
+<span class="text-on-surface-variant">Phí di chuyển ùn tắc:</span>
+<span class="font-medium text-on-surface-variant">600đ / phút</span>
+</li>
+</ul>
+</div>
+<div class="rounded-2xl bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="w-12 h-12 rounded-xl bg-secondary text-on-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[26px]">airport_shuttle</span>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold uppercase">Khoang rộng rãi</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">GoRide Car 7 Chỗ</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">SUV/MPV gia đình rộng rãi, chứa nhiều hành lý</p>
+</div>
+<div class="h-px bg-surface-container-highest"></div>
+<ul class="flex flex-col gap-3 font-body-sm text-body-sm text-on-surface">
+<li class="flex items-center justify-between">
+<span class="text-on-surface-variant">Cước mở cửa (2km đầu):</span>
+<span class="font-bold text-primary font-headline-sm text-headline-sm">25.000đ</span>
+</li>
+<li class="flex items-center justify-between">
+<span class="text-on-surface-variant">Km 3 đến km 25:</span>
+<span class="font-bold">14.500đ / km</span>
+</li>
+<li class="flex items-center justify-between">
+<span class="text-on-surface-variant">Từ km thứ 26 trở đi:</span>
+<span class="font-bold text-tertiary">Giảm 20%</span>
+</li>
+<li class="flex items-center justify-between">
+<span class="text-on-surface-variant">Phí di chuyển ùn tắc:</span>
+<span class="font-medium text-on-surface-variant">750đ / phút</span>
+</li>
+</ul>
+</div>
+</div>
+<div class="overflow-x-auto rounded-2xl bg-surface-container-lowest p-6 shadow-sm">
+<table class="w-full text-left font-body-md text-body-md">
+<thead>
+<tr class="text-on-surface-variant font-label-md text-label-md border-b-0">
+<th class="pb-4 font-bold">Hạng mục cấu thành cước</th>
+
+<th class="pb-4 font-bold text-primary">GoRide Car 4 Chỗ</th>
+<th class="pb-4 font-bold">GoRide Car 7 Chỗ</th>
+<th class="pb-4 font-bold">Ghi chú áp dụng</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 text-on-surface font-medium">
+<tr class="bg-surface-container-low/50 rounded-xl">
+<td class="py-3.5 px-3 rounded-l-xl font-bold flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+                  Cước mở cửa (2km đầu tiên)
+                </td>
+
+<td class="py-3.5 px-3 font-bold text-primary">20.000 đ</td>
+<td class="py-3.5 px-3">25.000 đ</td>
+<td class="py-3.5 px-3 rounded-r-xl text-on-surface-variant font-normal">Áp dụng cho trọn vẹn 2km lăn bánh đầu tiên</td>
+</tr>
+<tr>
+<td class="py-3.5 px-3 font-bold flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+                  Mỗi km tiếp theo (Km 3 - 25)
+                </td>
+
+<td class="py-3.5 px-3 font-bold text-primary">11.000 đ/km</td>
+<td class="py-3.5 px-3">14.500 đ/km</td>
+<td class="py-3.5 px-3 text-on-surface-variant font-normal">Tự động cộng dồn theo từng 100m đo lường GPS</td>
+</tr>
+<tr class="bg-surface-container-low/50">
+<td class="py-3.5 px-3 rounded-l-xl font-bold flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+                  Từ km thứ 26 trở đi (Ưu đãi dài)
+                </td>
+
+<td class="py-3.5 px-3 font-bold text-tertiary">9.350 đ/km (-15%)</td>
+<td class="py-3.5 px-3 font-bold text-tertiary">11.600 đ/km (-20%)</td>
+<td class="py-3.5 px-3 rounded-r-xl text-on-surface-variant font-normal">Chiết khấu trực tiếp kích hoạt tự động theo số km</td>
+</tr>
+<tr>
+<td class="py-3.5 px-3 font-bold flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+                  Phí thời gian di chuyển (ùn tắc)
+                </td>
+
+<td class="py-3.5 px-3 font-bold text-primary">600 đ/phút</td>
+<td class="py-3.5 px-3">750 đ/phút</td>
+<td class="py-3.5 px-3 text-on-surface-variant font-normal">Chỉ tính khi vận tốc di chuyển thực tế dưới 12 km/h</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="fare-pane hidden flex flex-col gap-6" id="tab-intercity">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="rounded-2xl bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">sync_alt</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Gói Khứ Hồi 2 Chiều Trong Ngày</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Khách hàng đặt chiều về trong ngày cùng tài xế được hưởng mức ưu đãi đặc biệt:
+            </p>
+<div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface">Giảm giá cước chiều về:</span>
+<span class="font-bold text-tertiary font-headline-sm text-headline-sm">30% - 40%</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Miễn phí thời gian chờ:</span>
+<span class="font-bold text-on-surface">Lên đến 120 phút</span>
+</div>
+</div>
+</div>
+<div class="rounded-2xl bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-tertiary-container text-on-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">map</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Tuyến Đi Tỉnh Trọn Gói Cố Định</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Các tuyến cao tốc phổ biến (TP.HCM ↔ Vũng Tàu, Bình Dương, Long Thành, Cần Thơ) có mức giá trọn gói niêm yết không đổi kể cả giờ cao điểm.
+            </p>
+<div class="p-4 rounded-xl bg-surface-container-low flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface font-semibold">Ưu đãi đặt trước 12h:</span>
+<span class="font-bold text-primary font-headline-sm text-headline-sm">Giảm thêm 50.000đ</span>
+</div>
+</div>
+</div>
+</div>
+<div class="fare-pane hidden flex flex-col gap-6" id="tab-surcharges">
+<div class="rounded-2xl bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Chính sách phụ phí công khai minh bạch</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Mọi khoản phụ phí đều có điều kiện kích hoạt cụ thể và thông báo trước trên màn hình ứng dụng trước khi bạn nhấn nút "Xác nhận đặt xe".
+          </p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+<div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="material-symbols-outlined">nightlight</span>
+                Phụ phí ban đêm
+              </div>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">+10.000 đ</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Khung giờ từ 22:00 đến 05:00 sáng hôm sau nhằm hỗ trợ tài xế trực ca khuya.</span>
+</div>
+<div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center gap-2 text-secondary font-bold">
+<span class="material-symbols-outlined">rainy</span>
+                Thời tiết khắc nghiệt
+              </div>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">+10.000 - 20.000 đ</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Áp dụng khi có mưa bão to, triều cường ngập úng diện rộng được hệ thống tự động ghi nhận.</span>
+</div>
+<div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center gap-2 text-tertiary font-bold">
+<span class="material-symbols-outlined">toll</span>
+                Phí cầu đường, bến bãi
+              </div>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Theo thực tế ETC</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Khách hàng chi trả trực tiếp hoặc cộng vào hóa đơn đúng theo biểu giá trạm thu phí thực phát sinh.</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<div class="lg:col-span-6 flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-bold uppercase w-fit">
+<span class="material-symbols-outlined text-[16px]">calculate</span>
+            Công Cụ Dự Tính Tức Thì
+          </div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">Tính cước nhanh chuyến đi</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Chọn loại xe và kéo số quãng đường dự kiến để kiểm tra ước tính chi phí chuẩn xác theo thời gian thực.
+          </p>
+</div>
+<div class="rounded-2xl bg-surface-container-lowest p-6 shadow-xl flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<label class="font-label-md text-label-md text-on-surface font-bold">1. Chọn phương tiện di chuyển:</label>
+<div class="grid gap-3 sm:grid-cols-2" id="calc-vehicle-selector">
+
+<button class="calc-vehicle-btn active p-3 rounded-xl bg-primary-fixed/50 text-primary transition-all flex flex-col items-center gap-1.5 text-center" data-vehicle="car4" type="button">
+<span class="material-symbols-outlined text-[24px]">directions_car</span>
+<span class="font-label-md text-label-md font-bold">Car 4 chỗ</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">20k / 2km đầu</span>
+</button>
+<button class="calc-vehicle-btn p-3 rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container transition-all flex flex-col items-center gap-1.5 text-center" data-vehicle="car7" type="button">
+<span class="material-symbols-outlined text-[24px]">airport_shuttle</span>
+<span class="font-label-md text-label-md font-bold">Car 7 chỗ</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">25k / 2km đầu</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface font-bold" for="distance-slider">2. Khoảng cách lộ trình dự kiến:</label>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-sm text-headline-sm text-primary font-extrabold" id="slider-km-value">10</span>
+<span class="font-label-md text-label-md text-on-surface-variant">km</span>
+</div>
+</div>
+<input class="w-full h-2.5 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary" id="distance-slider" max="60" min="1" type="range" value="10">
+<div class="flex justify-between font-label-sm text-label-sm text-outline">
+<span class="">1 km</span>
+<span class="">15 km</span>
+<span class="">30 km (Giảm cước)</span>
+<span class="">60 km</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 pt-2">
+<span class="font-label-md text-label-md text-on-surface font-bold">3. Tùy chọn điều kiện bổ sung:</span>
+<div class="flex flex-col gap-2.5 font-body-sm text-body-sm">
+<label class="flex items-center gap-3 cursor-pointer select-none">
+<input class="w-5 h-5 rounded text-primary focus:ring-0 cursor-pointer" id="calc-night" type="checkbox">
+<span class="text-on-surface">Đi khung giờ đêm khuya (22h - 05h) (+10.000đ)</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer select-none">
+<input class="w-5 h-5 rounded text-primary focus:ring-0 cursor-pointer" id="calc-rain" type="checkbox">
+<span class="text-on-surface">Thời tiết mưa bão ngập lớn (+15.000đ)</span>
+</label>
+</div>
+</div>
+<div class="p-5 rounded-2xl bg-surface-container-high/60 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Ước tính cước chuyến đi:</span>
+<span class="px-2 py-0.5 rounded bg-tertiary-container/20 text-tertiary font-label-sm text-label-sm font-bold">Tiết kiệm minh bạch</span>
+</div>
+<div class="flex items-baseline justify-between">
+<div class="flex flex-col">
+<span class="font-display text-display text-primary font-extrabold leading-none" id="calc-result-fare">108.000</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">VNĐ (Đã bao gồm VAT)</span>
+</div>
+<a class="px-5 py-3 rounded-xl bg-primary text-on-primary font-label-md text-label-md font-bold shadow-[0_8px_20px_rgba(0,80,200,0.25)] hover:bg-primary-container transition-all flex items-center gap-2" data-path="dat-xe" href="#">
+                Đặt xe ngay
+                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant bg-surface-container-lowest p-3 rounded-xl mt-1" id="calc-breakdown-text">Cước mở cửa 20.000đ + 8km tiếp theo (88.000đ).</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-6 flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold uppercase w-fit">
+<span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+            Thuật Toán Minh Bạch
+          </div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">So sánh: Giá Ước Tính vs Giá Thực Tế</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            GoRide cam kết nói không với các khoản thu mơ hồ. Tìm hiểu sự khác nhau và lý do có sự chênh lệch (nếu phát sinh).
+          </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm flex flex-col gap-3">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-[24px]">route</span>
+<span class="font-headline-sm text-headline-sm font-bold">Giá ước tính</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Xác định khi bấm đặt</span>
+<ul class="flex flex-col gap-2.5 font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0">check_circle</span>
+<span class="">Tính theo lộ trình tối ưu GPS giữa điểm đón và điểm trả.</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0">check_circle</span>
+<span class="">Đã bao gồm khuyến mãi / mã giảm giá (voucher).</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0">check_circle</span>
+<span class="">Thông báo ngay phụ phí giờ cao điểm nếu thời tiết có mưa lớn.</span>
+</li>
+</ul>
+</div>
+<div class="rounded-2xl bg-surface-container-lowest p-5 shadow-sm flex flex-col gap-3">
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined text-[24px]">receipt_long</span>
+<span class="font-headline-sm text-headline-sm font-bold">Giá thực tế</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Chốt khi tài xế bấm hoàn thành</span>
+<ul class="flex flex-col gap-2.5 font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px] shrink-0">done_all</span>
+<span class="">Bằng đúng 100% giá ước tính nếu hành trình đúng tuyến dự tính.</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-outline text-[18px] shrink-0">add_circle</span>
+<span class="">Chỉ thay đổi khi: Hành khách yêu cầu đổi điểm trả hoặc thêm điểm dừng.</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-outline text-[18px] shrink-0">toll</span>
+<span class="">Cộng thêm vé cầu đường/bến bãi phát sinh thực tế (nếu qua trạm).</span>
+</li>
+</ul>
+</div>
+</div>
+<div class="rounded-2xl bg-surface-container-lowest p-6 shadow-sm flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary-fixed flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[22px]">hub</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold">Quy trình xử lý cước minh bạch 4 bước</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Cách công nghệ GoRide bảo vệ quyền lợi tài chính của hành khách</p>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+<div class="p-3.5 rounded-xl bg-surface-container-low flex items-start gap-3">
+<span class="w-6 h-6 rounded-full bg-primary text-on-primary font-label-sm text-label-sm flex items-center justify-center font-bold shrink-0">1</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-on-surface">Đo lường bản đồ số</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Thuật toán dẫn đường quét cung đường thông thoáng nhất.</span>
+</div>
+</div>
+<div class="p-3.5 rounded-xl bg-surface-container-low flex items-start gap-3">
+<span class="w-6 h-6 rounded-full bg-primary text-on-primary font-label-sm text-label-sm flex items-center justify-center font-bold shrink-0">2</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-on-surface">Khóa biểu giá tạm thời</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Giữ nguyên giá niêm yết trong suốt 5 phút khách hàng lựa chọn xe.</span>
+</div>
+</div>
+<div class="p-3.5 rounded-xl bg-surface-container-low flex items-start gap-3">
+<span class="w-6 h-6 rounded-full bg-primary text-on-primary font-label-sm text-label-sm flex items-center justify-center font-bold shrink-0">3</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-on-surface">Ghi nhận telemetry GPS</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Đồng bộ vận tốc xe, thời gian dừng chờ và tọa độ di chuyển.</span>
+</div>
+</div>
+<div class="p-3.5 rounded-xl bg-surface-container-low flex items-start gap-3">
+<span class="w-6 h-6 rounded-full bg-tertiary-container text-on-tertiary-container font-label-sm text-label-sm flex items-center justify-center font-bold shrink-0">4</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-on-surface">Hóa đơn điện tử chi tiết</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Gửi biên lai minh bạch qua email/SMS ngay khi kết thúc hành trình.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="rounded-3xl bg-surface-container-lowest p-8 lg:p-12 shadow-sm flex flex-col gap-8">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="flex flex-col gap-2">
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-wider">Hỏi &amp; Đáp Chi Tiết</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">Câu hỏi thường gặp về cước phí</h2>
+</div>
+<a class="text-primary font-label-md text-label-md font-bold flex items-center gap-1.5 hover:underline" data-path="ho-tro" href="#">
+          Trung tâm trợ giúp GoRide
+          <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-2 p-5 rounded-2xl bg-surface-container-low">
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">help_outline</span>
+            Nếu tài xế đi đường vòng thì cước tính thế nào?
+          </h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Hệ thống GoRide bảo vệ giá cố định ban đầu nếu nguyên nhân đi vòng xuất phát từ tài xế. Trường hợp tài xế yêu cầu trả thêm không đúng hiển thị ứng dụng, bạn có thể gửi phản ánh tức thì qua mục Khiếu nại để được hoàn tiền chênh lệch tự động trong 24 giờ.
+          </p>
+</div>
+<div class="flex flex-col gap-2 p-5 rounded-2xl bg-surface-container-low">
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">help_outline</span>
+            Tôi có thể thanh toán bằng phương thức nào?
+          </h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            GoRide hỗ trợ đa dạng phương thức: Tiền mặt, Ví MoMo, ZaloPay, và tài khoản ngân hàng kết nối Napas 24/7 không tính thêm phụ phí thanh toán.
+          </p>
+</div>
+<div class="flex flex-col gap-2 p-5 rounded-2xl bg-surface-container-low">
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">help_outline</span>
+            Phí hủy chuyến được áp dụng ra sao?
+          </h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Bạn hoàn toàn được hủy chuyến miễn phí trong vòng 5 phút đầu tiên sau khi tài xế nhận cuốc. Sau 5 phút, nếu tài xế đã di chuyển hơn 1km đến điểm đón mà khách hàng hủy chuyến vô lý do, hệ thống sẽ thu phí hỗ trợ tài xế 10.000đ cho xe máy và 20.000đ cho xe hơi.
+          </p>
+</div>
+<div class="flex flex-col gap-2 p-5 rounded-2xl bg-surface-container-low">
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">help_outline</span>
+            Làm sao để nhận hóa đơn VAT cho công ty?
+          </h4>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Khách hàng chỉ cần nhập thông tin mã số thuế công ty trong mục "Hồ sơ công việc / Xuất hóa đơn VAT". Sau mỗi chuyến đi hoàn thành, hóa đơn điện tử hợp lệ của Bộ Tài Chính sẽ tự động được gửi về hòm thư điện tử đăng ký của bạn.
+          </p>
+</div>
+</div>
+</section>
+<section class="rounded-3xl bg-primary text-on-primary p-8 lg:p-12 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
+<div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+<div class="flex flex-col gap-3 max-w-2xl relative z-10">
+<span class="font-label-sm text-label-sm uppercase font-bold text-secondary-fixed tracking-wider">Hành trình 5 sao tin cậy</span>
+<h2 class="font-headline-lg text-headline-lg lg:text-display text-on-primary font-extrabold tracking-tight">
+          Trải nghiệm ngay chuyến xe giá tốt cùng GoRide
+        </h2>
+<p class="font-body-md text-body-md text-on-primary/90">
+          Chỉ với vài chạm trên trình duyệt web, tài xế gần bạn nhất sẽ có mặt đón bạn trong vòng 3 phút. Biểu giá minh bạch, cước phí rõ ràng từng mét đường.
+        </p>
+</div>
+<div class="flex flex-col sm:flex-row items-center gap-4 shrink-0 relative z-10 w-full sm:w-auto">
+<a class="w-full sm:w-auto px-8 py-4 rounded-xl bg-surface-container-lowest text-primary font-label-lg text-label-lg font-bold shadow-lg hover:bg-surface-container-low hover:scale-105 active:scale-95 transition-all text-center flex items-center justify-center gap-2" data-path="dat-xe" href="#">
+          Đặt xe ngay
+          <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+</a>
+<a class="w-full sm:w-auto px-6 py-4 rounded-xl bg-primary-container text-on-primary font-label-lg text-label-lg font-bold hover:bg-primary-container/80 transition-all text-center flex items-center justify-center gap-2" href="tel:19008888">
+<span class="material-symbols-outlined text-[20px]">call</span>
+          Hotline 1900 8888
+        </a>
+</div>
+</section>
+</div>
+</div>
+<script>
+  (function initFareCalculator() {
+    const tabs = document.querySelectorAll('.fare-tab-btn');
+    const panes = {
+      urban: document.getElementById('tab-urban'),
+      intercity: document.getElementById('tab-intercity'),
+      surcharges: document.getElementById('tab-surcharges')
+    };
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.classList.remove('active', 'bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-bold');
+          t.classList.add('text-on-surface-variant');
+        });
+        tab.classList.add('active', 'bg-surface-container-lowest', 'text-primary', 'shadow-sm', 'font-bold');
+        tab.classList.remove('text-on-surface-variant');
+
+        const target = tab.getAttribute('data-tab');
+        Object.keys(panes).forEach(k => {
+          if (k === target) {
+            panes[k].classList.remove('hidden');
+          } else {
+            panes[k].classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    const vehicleBtns = document.querySelectorAll('.calc-vehicle-btn');
+    const slider = document.getElementById('distance-slider');
+    const kmValue = document.getElementById('slider-km-value');
+    const nightCheck = document.getElementById('calc-night');
+    const rainCheck = document.getElementById('calc-rain');
+    const resultFare = document.getElementById('calc-result-fare');
+    const breakdownText = document.getElementById('calc-breakdown-text');
+
+    let currentVehicle = 'car4';
+
+    const pricing = {
+      bike: { base: 13000, next: 5000, longDiscount: 0.15, label: 'GoRide Bike' },
+      car4: { base: 20000, next: 11000, longDiscount: 0.15, label: 'GoRide Car 4 chỗ' },
+      car7: { base: 25000, next: 14500, longDiscount: 0.20, label: 'GoRide Car 7 chỗ' }
+    };
+
+    function recalculate() {
+      const km = parseInt(slider.value, 10);
+      kmValue.textContent = km;
+      const rate = pricing[currentVehicle];
+
+      let fare = 0;
+      let breakdown = '';
+
+      if (km <= 2) {
+        fare = rate.base;
+        breakdown = 'Đang áp dụng cước mở cửa trọn gói 2km đầu tiên: ' + fare.toLocaleString('vi-VN') + 'đ.';
+      } else if (km <= 25) {
+        const extraKm = km - 2;
+        const extraFare = extraKm * rate.next;
+        fare = rate.base + extraFare;
+        breakdown = 'Cước mở cửa ' + rate.base.toLocaleString('vi-VN') + 'đ + ' + extraKm + 'km tiếp theo (' + extraFare.toLocaleString('vi-VN') + 'đ).';
+      } else {
+        const normalExtraKm = 23;
+        const normalExtraFare = normalExtraKm * rate.next;
+        const longKm = km - 25;
+        const discountedRate = rate.next * (1 - rate.longDiscount);
+        const longFare = longKm * discountedRate;
+        fare = rate.base + normalExtraFare + longFare;
+        breakdown = 'Cước mở cửa ' + rate.base.toLocaleString('vi-VN') + 'đ + 23km tiêu chuẩn (' + normalExtraFare.toLocaleString('vi-VN') + 'đ) + ' + longKm + 'km ưu đãi đường dài giảm ' + Math.round(rate.longDiscount * 100) + '% (' + Math.round(longFare).toLocaleString('vi-VN') + 'đ).';
+      }
+
+      if (nightCheck && nightCheck.checked) {
+        fare += 10000;
+        breakdown += ' + Phụ phí đêm 10.000đ.';
+      }
+
+      if (rainCheck && rainCheck.checked) {
+        fare += 15000;
+        breakdown += ' + Phụ phí thời tiết 15.000đ.';
+      }
+
+      resultFare.textContent = Math.round(fare).toLocaleString('vi-VN');
+      breakdownText.textContent = breakdown;
+    }
+
+    vehicleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        vehicleBtns.forEach(b => {
+          b.classList.remove('active', 'bg-primary-fixed/50', 'text-primary');
+          b.classList.add('bg-surface-container-low', 'text-on-surface');
+        });
+        btn.classList.add('active', 'bg-primary-fixed/50', 'text-primary');
+        btn.classList.remove('bg-surface-container-low', 'text-on-surface');
+        currentVehicle = btn.getAttribute('data-vehicle');
+        recalculate();
+      });
+    });
+
+    if (slider) slider.addEventListener('input', recalculate);
+    if (nightCheck) nightCheck.addEventListener('change', recalculate);
+    if (rainCheck) rainCheck.addEventListener('change', recalculate);
+
+    recalculate();
+  })();
+</script></main><aside class="fixed bottom-6 right-6 z-30 flex flex-col items-end gap-3 pointer-events-none"><a class="pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-surface text-on-surface shadow-[0_8px_24px_rgba(15,23,42,0.12)] hover:shadow-[0_12px_28px_rgba(0,80,200,0.18)] ring-4 ring-surface-container-lowest/90 transition-all hover:-translate-y-0.5" href="tel:19008888"><div class="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center"><span class="material-symbols-outlined text-[18px]">phone_in_talk</span></div><div class="flex flex-col text-left"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Hotline 24/7</span><span class="font-label-md text-label-md text-tertiary font-bold leading-tight">1900 8888</span></div></a><a class="pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-surface text-on-surface shadow-[0_8px_24px_rgba(15,23,42,0.12)] hover:shadow-[0_12px_28px_rgba(0,80,200,0.18)] ring-4 ring-surface-container-lowest/90 transition-all hover:-translate-y-0.5" data-path="chat-zalo" href="#"><div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">Z</div><span class="font-label-md text-label-md text-on-surface font-semibold pr-1">Chat Zalo</span></a><button class="pointer-events-auto flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-primary text-on-primary shadow-[0_12px_28px_rgba(0,80,200,0.3)] hover:bg-primary-container ring-4 ring-surface-container-lowest/90 transition-all hover:-translate-y-0.5" type="button"><div class="w-8 h-8 rounded-full bg-surface-container-lowest text-primary flex items-center justify-center"><span class="material-symbols-outlined text-[20px]">smart_toy</span></div><span class="font-label-md text-label-md font-bold pr-1">Hỗ trợ AI</span></button></aside><footer class="w-full bg-surface-container-low mt-20"><div class="max-w-[1280px] mx-auto px-6 py-16"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10"><div class="lg:col-span-2 flex flex-col gap-4"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary"><span class="material-symbols-outlined text-[22px]">local_taxi</span></div><span class="font-headline-md text-headline-md text-primary font-bold">GoRide</span></div><p class="font-body-md text-body-md text-on-surface-variant max-w-sm">Hệ sinh thái di chuyển đô thị thông minh hàng đầu Việt Nam. Kết nối nhanh chóng, chi phí minh bạch và hành trình an toàn cho từng chuyến đi.</p><div class="flex items-center gap-3 pt-2"><div class="w-9 h-9 rounded-full bg-surface flex items-center justify-center text-on-surface-variant shadow-[0_1px_4px_rgba(15,23,42,0.06)]"><span class="material-symbols-outlined text-[18px]">verified_user</span></div><div class="flex flex-col"><span class="font-label-sm text-label-sm text-tertiary uppercase">Chất lượng xác thực</span><span class="font-body-sm text-body-sm text-on-surface font-medium">An tâm trên mọi hành trình</span></div></div></div><div class="flex flex-col gap-3"><span class="font-headline-sm text-headline-sm text-on-surface font-bold mb-1">Dịch vụ</span><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="dat-xe" href="#">GoRide Xe máy</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="dat-xe" href="#">GoRide Car 4 chỗ</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="dat-xe" href="#">GoRide Car 7 chỗ</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="dat-xe" href="#">GoRide Giao hàng siêu tốc</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="bang-gia" href="#">Bảng giá cước chi tiết</a></div><div class="flex flex-col gap-3"><span class="font-headline-sm text-headline-sm text-on-surface font-bold mb-1">Chính sách &amp; Quy định</span><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="dieu-khoan-su-dung" href="#">Điều khoản sử dụng</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="chinh-sach-bao-mat" href="#">Chính sách bảo mật</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="chinh-sach-hoan-tien" href="#">Quy chế hoạt động &amp; Hoàn tiền</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="tieu-chuan-an-toan" href="#">Tiêu chuẩn an toàn hành khách</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" data-path="giai-quyet-khieu-nai" href="#">Quy trình giải quyết khiếu nại</a></div><div class="flex flex-col gap-3"><span class="font-headline-sm text-headline-sm text-on-surface font-bold mb-1">Liên hệ hỗ trợ</span><div class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-[20px] text-primary shrink-0">headset_mic</span><div class="flex flex-col"><span class="font-label-sm text-label-sm">Hotline 24/7</span><span class="font-body-md text-body-md text-on-surface font-bold">1900 8888</span></div></div><div class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-[20px] text-primary shrink-0">mail</span><div class="flex flex-col"><span class="font-label-sm text-label-sm">Hòm thư chăm sóc</span><span class="font-body-md text-body-md text-on-surface">support@goride.vn</span></div></div><div class="flex items-start gap-2 text-on-surface-variant"><span class="material-symbols-outlined text-[20px] text-primary shrink-0">location_on</span><div class="flex flex-col"><span class="font-label-sm text-label-sm">Trụ sở chính</span><span class="font-body-md text-body-md text-on-surface">Tòa nhà GoRide Tower, Q. 1, TP. Hồ Chí Minh</span></div></div></div></div><div class="mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4"><p class="font-body-sm text-body-sm text-on-surface-variant">© 2026 GoRide Vietnam - Project Software Engineering Deliverable</p><div class="flex items-center gap-6"><span class="font-label-sm text-label-sm text-tertiary flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">check_circle</span>Hệ thống vận hành ổn định 99.98%</span></div></div></div></footer>
+
+
+
+</body></html>

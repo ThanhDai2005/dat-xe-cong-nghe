@@ -87,13 +87,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/services" className={linkClass}>
-                  Khu vực phục vụ
-                </Link>
-              </li>
-              <li>
-                <Link to="/faq" className={linkClass}>
-                  Hỗ trợ / FAQ
+                <Link to="/support" className={linkClass}>
+                  Hỗ trợ
                 </Link>
               </li>
               <li>
