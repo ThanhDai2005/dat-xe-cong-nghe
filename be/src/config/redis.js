@@ -1,5 +1,5 @@
 const Redis = require("ioredis");
-require("dotenv").config({ path: require("path").join(__dirname, "../../.env") });
+require("./env");
 
 const redis = new Redis({
   host: process.env.REDIS_HOST || "127.0.0.1",
