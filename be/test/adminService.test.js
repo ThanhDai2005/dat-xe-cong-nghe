@@ -1,7 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { fareInput, tripInput } = require("../src/admin/adminValidation");
-const { createFare, createTrip, updateTripStatus } = require("../src/admin/adminService");
+const { createFare, createTrip, updateTripStatus, loginAdmin } = require("../src/admin/adminService");
+const bcrypt = require("bcryptjs");
 const { vietnamDayBounds } = require("../src/utils/vietnamTime");
 
 const mockDatabase = (handler) => {
@@ -83,4 +84,98 @@ test("không hủy chuyến đã có khách", async () => {
   });
   assert.equal(state.rolledBack, 1);
   assert.equal(state.queries.some(({ sql }) => sql.includes("UPDATE trips")), false);
+});
+
+test("đăng nhập admin thành công khi thông tin chính xác", async () => {
+  const hash = await bcrypt.hash("admin123", 4);
+  const fakeDb = {
+    async query(sql) {
+      if (sql.includes("FROM users")) {
+        return [[{
+          id: "admin-1",
+          full_name: "Admin User",
+          email: "admin@test.com",
+          phone: "0900000003",
+          password_hash: hash,
+          role: "ADMIN",
+          status: "ACTIVE",
+        }]];
+      }
+      return [[]];
+    },
+  };
+  const result = await loginAdmin({ identifier: "admin@test.com", password: "admin123" }, fakeDb);
+  assert.equal(result.user.id, "admin-1");
+  assert.equal(result.user.role, "ADMIN");
+  assert.equal(result.user.status, "ACTIVE");
+  assert.ok(result.tokens.accessToken);
+});
+
+test("từ chối đăng nhập admin khi sai mật khẩu hoặc role không phải ADMIN", async () => {
+  const hash = await bcrypt.hash("admin123", 4);
+  const fakeDb = {
+    async query() {
+      return [[{
+        id: "user-1",
+        full_name: "Customer",
+        email: "customer@test.com",
+        phone: "0911111111",
+        password_hash: hash,
+        role: "CUSTOMER",
+        status: "ACTIVE",
+      }]];
+    },
+  };
+  // Role không phải ADMIN
+  await assert.rejects(
+    loginAdmin({ identifier: "customer@test.com", password: "admin123" }, fakeDb),
+    { code: "AUTH_ROLE_MISMATCH", statusCode: 403 }
+  );
+
+  // Mật khẩu sai
+  const adminDb = {
+    async query() {
+      return [[{
+        id: "admin-1",
+        full_name: "Admin",
+        email: "admin@test.com",
+        phone: "0900000003",
+        password_hash: hash,
+        role: "ADMIN",
+        status: "ACTIVE",
+      }]];
+    },
+  };
+  await assert.rejects(
+    loginAdmin({ identifier: "admin@test.com", password: "wrongpassword" }, adminDb),
+    { code: "INVALID_CREDENTIALS", statusCode: 401 }
+  );
+
+  // Tài khoản chưa kích hoạt
+  const inactiveDb = {
+    async query() {
+      return [[{
+        id: "admin-1",
+        full_name: "Admin",
+        email: "admin@test.com",
+        phone: "0900000003",
+        password_hash: hash,
+        role: "ADMIN",
+        status: "SUSPENDED",
+      }]];
+    },
+  };
+  await assert.rejects(
+    loginAdmin({ identifier: "admin@test.com", password: "admin123" }, inactiveDb),
+    { code: "ACCOUNT_INACTIVE", statusCode: 403 }
+  );
+});
+
+test.after(async () => {
+  const redis = require("../src/config/redis");
+  try {
+    await redis.quit();
+  } catch (_) {
+    redis.disconnect();
+  }
 });

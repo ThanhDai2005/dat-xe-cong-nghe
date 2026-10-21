@@ -18,10 +18,10 @@ const loginV1 = async (req, res) => {
   const { identifier, password, clientRole } = req.body;
 
   // ── Validate đầu vào ─────────────────────────────────────────────────
-  if (!identifier || !password || !clientRole) {
+  if (!identifier || !password) {
     return res.status(400).json({
       success: false,
-      message: "Vui lòng nhập đầy đủ: identifier, password, clientRole",
+      message: "Vui lòng nhập đầy đủ: identifier, password",
     });
   }
 
@@ -63,7 +63,7 @@ const loginV1 = async (req, res) => {
     const user = rows[0];
 
     // ── [3] Kiểm tra clientRole (AUTH_ROLE_MISMATCH) ──────────────────
-    if (user.role !== clientRole) {
+    if (clientRole && String(user.role).toUpperCase() !== String(clientRole).toUpperCase()) {
       return res.status(403).json({
         success: false,
         message: `Tài khoản không có quyền truy cập với vai trò '${clientRole}'`,

@@ -27,14 +27,14 @@ const fareInput = (body = {}) => ({
 });
 
 const departureValue = (value) => {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) {
-    throw createHttpError(400, "VALIDATION_ERROR", "departureTime phải là ngày giờ ISO có múi giờ");
+  if (!value || typeof value !== "string") {
+    throw createHttpError(400, "VALIDATION_ERROR", "departureTime không được để trống");
   }
   const date = new Date(value);
   if (Number.isNaN(date.getTime()) || date.getTime() <= Date.now()) {
-    throw createHttpError(400, "VALIDATION_ERROR", "departureTime phải ở trong tương lai");
+    throw createHttpError(400, "VALIDATION_ERROR", "departureTime phải là thời điểm hợp lệ trong tương lai");
   }
-  // MySQL DATETIME is stored as UTC; search converts Vietnam calendar days to UTC bounds.
+  // Store formatted for MySQL (UTC)
   return date.toISOString().slice(0, 19).replace("T", " ");
 };
 

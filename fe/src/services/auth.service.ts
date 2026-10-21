@@ -1,44 +1,13 @@
 import { api } from "@/lib/api";
 
-/* =========================================================
-   1. KIỂU DỮ LIỆU TÀI KHOẢN
-   ========================================================= */
-
-/**
- * Dữ liệu tài khoản đã được chuẩn hóa ở frontend.
- * account_id trong CSDL là BIGINT nên lưu dưới dạng string
- * để tránh mất độ chính xác.
- */
+// ── Kiểu dữ liệu ──────────────────────────────────────────────────────────
 export interface AuthUser {
   id: string;
   fullName: string;
-  phone: string;
   email: string;
   role: string;
   status: string;
 }
-
-/**
- * Dữ liệu tài khoản có thể được backend trả về theo
- * snake_case (tên cột CSDL) hoặc camelCase.
- */
-export interface DatabaseUser {
-  account_id?: string | number;
-  full_name?: string;
-  phone?: string;
-  email?: string;
-  account_role?: string;
-  account_status?: string;
-
-  id?: string | number;
-  fullName?: string;
-  role?: string;
-  status?: string;
-}
-
-/* =========================================================
-   2. KIỂU DỮ LIỆU TOKEN
-   ========================================================= */
 
 export interface AuthTokens {
   accessToken: string;
@@ -47,385 +16,158 @@ export interface AuthTokens {
   expiresIn: number;
 }
 
-/* =========================================================
-   3. KIỂU DỮ LIỆU PHẢN HỒI API
-   ========================================================= */
-
 export interface AuthResponse {
   success: boolean;
   message: string;
-  data: {
-    user: AuthUser | DatabaseUser;
-    tokens: AuthTokens;
-  };
+  data: { user: AuthUser; tokens: AuthTokens };
 }
 
-export interface ApiMessageResponse {
-  success: boolean;
-  message: string;
-}
+export const normalizeAuthUser = (user: any): AuthUser => ({
+  id: String(user?.id ?? ""),
+  fullName: user?.fullName ?? user?.full_name ?? "",
+  email: user?.email ?? "",
+  role: String(user?.role ?? "").toUpperCase(),
+  status: String(user?.status ?? "").toUpperCase(),
+});
 
-/* =========================================================
-   4. CHUẨN HÓA DỮ LIỆU USER
-   ========================================================= */
-
-/**
- * Chuyển dữ liệu từ backend/CSDL sang cấu trúc AuthUser
- * thống nhất để frontend sử dụng.
- */
-export const normalizeAuthUser = (
-  raw: AuthUser | DatabaseUser
-): AuthUser => {
-  const user = raw as DatabaseUser;
-
-  const accountId = user.account_id ?? user.id;
-
-  if (accountId === undefined || accountId === null) {
-    throw new Error("API không trả về account_id của tài khoản.");
-  }
-
-  return {
-    id: String(accountId),
-    fullName: user.full_name ?? user.fullName ?? "",
-    phone: user.phone ?? "",
-    email: user.email ?? "",
-    role: user.account_role ?? user.role ?? "",
-    status: user.account_status ?? user.status ?? "",
-  };
-};
-
-/* =========================================================
-   5. LƯU TOKEN VÀ THÔNG TIN NGƯỜI DÙNG
-   ========================================================= */
-
-/**
- * Lưu access token và các token tùy chọn.
- */
-export const saveTokens = (tokens: AuthTokens): void => {
+// ── Lưu token & user vào localStorage ─────────────────────────────────────
+export const saveTokens = (tokens: AuthTokens) => {
   localStorage.setItem("accessToken", tokens.accessToken);
-
-  if (tokens.refreshToken) {
-    localStorage.setItem("refreshToken", tokens.refreshToken);
-  } else {
-    localStorage.removeItem("refreshToken");
-  }
-
-  if (tokens.familyId) {
-    localStorage.setItem("familyId", tokens.familyId);
-  } else {
-    localStorage.removeItem("familyId");
-  }
-
+  if (tokens.refreshToken) localStorage.setItem("refreshToken", tokens.refreshToken);
+  if (tokens.familyId)     localStorage.setItem("familyId",     tokens.familyId);
   window.dispatchEvent(new Event("auth-change"));
 };
 
-/**
- * Lưu thông tin tài khoản đã chuẩn hóa.
- */
-export const saveUser = (user: AuthUser): void => {
+export const saveUser = (user: AuthUser) => {
   localStorage.setItem("user", JSON.stringify(user));
   window.dispatchEvent(new Event("auth-change"));
 };
 
-/**
- * Lấy thông tin tài khoản đang đăng nhập.
- */
 export const getUser = (): AuthUser | null => {
   try {
     const raw = localStorage.getItem("user");
-
-    if (!raw) {
-      return null;
-    }
-
-    return JSON.parse(raw) as AuthUser;
+    return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 };
 
-/**
- * Kiểm tra trạng thái đăng nhập dựa trên access token.
- */
 export const isAuthenticated = (): boolean => {
-  return Boolean(localStorage.getItem("accessToken"));
+  return !!localStorage.getItem("accessToken");
 };
 
-/**
- * Lấy access token hiện tại.
- */
-export const getAccessToken = (): string | undefined => {
-  return localStorage.getItem("accessToken") ?? undefined;
-};
+export const getAccessToken = () => localStorage.getItem("accessToken") ?? undefined;
 
-/**
- * Xóa các token, giữ lại thông tin user nếu cần.
- */
-export const clearTokens = (): void => {
+export const clearTokens = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("familyId");
-
   window.dispatchEvent(new Event("auth-change"));
 };
 
-/**
- * Xóa toàn bộ thông tin xác thực khi đăng xuất.
- */
-export const clearAuth = (): void => {
+export const clearAuth = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("familyId");
   localStorage.removeItem("user");
-
   window.dispatchEvent(new Event("auth-change"));
 };
 
-/* =========================================================
-   6. ĐĂNG NHẬP BẰNG MẬT KHẨU
-   POST /api/auth/v1/login
-   ========================================================= */
+// ══════════════════════════════════════════════════════════════════════════
+//  /api/auth — Auth APIs
+// ══════════════════════════════════════════════════════════════════════════
 
-export interface LoginRequest {
+/** POST /api/auth/v1/login — Đăng nhập email/SĐT hoặc OTP */
+export const login = (data: {
   identifier?: string;
   password?: string;
   clientRole: string;
   authMethod?: "PASSWORD" | "OTP";
   otpCode?: string;
   otpSessionId?: string;
-}
+}) => api.post<AuthResponse>("/auth/v1/login", data);
 
-export const login = (data: LoginRequest) => {
-  return api.post<AuthResponse>("/auth/v1/login", data);
-};
-
-/* =========================================================
-   7. ĐĂNG KÝ TÀI KHOẢN
-   POST /api/auth/register
-   ========================================================= */
-
-export interface RegisterRequest {
+/** POST /api/auth/register — Đăng ký tài khoản */
+export const register = (data: {
   role: string;
   fullName: string;
   email?: string;
   phone: string;
   password: string;
   confirmPassword: string;
-}
+}) => api.post<{ success: boolean; message: string }>("/auth/register", data);
 
-export const register = (data: RegisterRequest) => {
-  return api.post<ApiMessageResponse>("/auth/register", data);
-};
-
-/* =========================================================
-   8. GỬI OTP ĐẾN SỐ ĐIỆN THOẠI
-   POST /api/auth/phone/otp/send
-   ========================================================= */
-
-export interface SendPhoneOtpRequest {
+/** POST /api/auth/phone/otp/send — Gửi OTP SMS */
+export const sendPhoneOtp = (data: {
   phone: string;
   purpose: string;
   clientRole: string;
-}
+}) => api.post<{ success: boolean; message: string; data: { otpSessionId: string } }>(
+  "/auth/phone/otp/send", data
+);
 
-export interface SendPhoneOtpResponse {
-  success: boolean;
-  message: string;
-  data: {
-    otpSessionId: string;
-  };
-}
-
-export const sendPhoneOtp = (data: SendPhoneOtpRequest) => {
-  return api.post<SendPhoneOtpResponse>(
-    "/auth/phone/otp/send",
-    data
-  );
-};
-
-/* =========================================================
-   9. XÁC THỰC OTP ĐIỆN THOẠI
-   POST /api/auth/phone/otp/verify
-   ========================================================= */
-
-export interface VerifyPhoneOtpRequest {
+/** POST /api/auth/phone/otp/verify — Xác thực OTP và đăng nhập/tạo tài khoản */
+export const verifyPhoneOtp = (data: {
   otpSessionId: string;
   phone: string;
   otpCode: string;
-}
+}) => api.post<AuthResponse>("/auth/phone/otp/verify", data);
 
-export const verifyPhoneOtp = (data: VerifyPhoneOtpRequest) => {
-  return api.post<AuthResponse>(
-    "/auth/phone/otp/verify",
-    data
-  );
-};
-
-/* =========================================================
-   10. LÀM MỚI TOKEN
-   POST /api/auth/refresh-token
-   ========================================================= */
-
-export interface RefreshTokenRequest {
+/** POST /api/auth/refresh-token — Làm mới token */
+export const refreshToken = (data: {
   userId: string;
   familyId: string;
   refreshToken: string;
-}
+}) => api.post<{ success: boolean; data: { tokens: AuthTokens } }>("/auth/refresh-token", data);
 
-export interface RefreshTokenResponse {
-  success: boolean;
-  data: {
-    tokens: AuthTokens;
-  };
-}
-
-export const refreshToken = (data: RefreshTokenRequest) => {
-  return api.post<RefreshTokenResponse>(
-    "/auth/refresh-token",
-    data
-  );
-};
-
-/* =========================================================
-   11. ĐĂNG XUẤT
-   POST /api/auth/logout
-   ========================================================= */
-
-export interface LogoutRequest {
+/** POST /api/auth/logout — Đăng xuất */
+export const logout = (data: {
   familyId?: string;
   refreshToken?: string;
   allDevices?: boolean;
-}
+}) => api.post<{ success: boolean; message: string }>("/auth/logout", data, getAccessToken());
 
-export const logout = (data: LogoutRequest) => {
-  return api.post<ApiMessageResponse>(
-    "/auth/logout",
-    data,
-    getAccessToken()
-  );
-};
-
-/* =========================================================
-   12. QUÊN MẬT KHẨU
-   POST /api/auth/password/forgot
-   ========================================================= */
-
-export interface ForgotPasswordRequest {
+/** POST /api/auth/password/forgot — Quên mật khẩu */
+export const forgotPassword = (data: {
   identifier: string;
   channel: string;
-}
+}) => api.post<{ success: boolean; message: string; data: { otpSessionId: string } }>(
+  "/auth/password/forgot", data
+);
 
-export interface ForgotPasswordResponse {
-  success: boolean;
-  message: string;
-  data: {
-    otpSessionId: string;
-  };
-}
-
-export const forgotPassword = (data: ForgotPasswordRequest) => {
-  return api.post<ForgotPasswordResponse>(
-    "/auth/password/forgot",
-    data
-  );
-};
-
-/* =========================================================
-   13. XÁC THỰC OTP KHÔI PHỤC MẬT KHẨU
-   POST /api/auth/password/verify
-   ========================================================= */
-
-export interface VerifyPasswordOtpRequest {
+/** POST /api/auth/password/verify — Xác thực OTP khôi phục mật khẩu */
+export const verifyPasswordOtp = (data: {
   identifier: string;
   otpCode: string;
   purpose: string;
-}
+}) => api.post<{ success: boolean; data: { resetToken: string } }>(
+  "/auth/password/verify", data
+);
 
-export interface VerifyPasswordOtpResponse {
-  success: boolean;
-  data: {
-    resetToken: string;
-  };
-}
-
-export const verifyPasswordOtp = (
-  data: VerifyPasswordOtpRequest
-) => {
-  return api.post<VerifyPasswordOtpResponse>(
-    "/auth/password/verify",
-    data
-  );
-};
-
-/* =========================================================
-   14. ĐẶT LẠI MẬT KHẨU
-   POST /api/auth/password/reset
-   ========================================================= */
-
-export interface ResetPasswordRequest {
+/** POST /api/auth/password/reset — Đặt lại mật khẩu mới */
+export const resetPassword = (data: {
   resetToken: string;
   newPassword: string;
   confirmNewPassword: string;
-}
+}) => api.post<{ success: boolean; message: string }>("/auth/password/reset", data);
 
-export const resetPassword = (data: ResetPasswordRequest) => {
-  return api.post<ApiMessageResponse>(
-    "/auth/password/reset",
-    data
-  );
-};
+// ══════════════════════════════════════════════════════════════════════════
+//  /api/v1/user — User APIs (cần accessToken)
+// ══════════════════════════════════════════════════════════════════════════
 
-/* =========================================================
-   15. LẤY HỒ SƠ NGƯỜI DÙNG
-   GET /api/v1/user/profile
-   ========================================================= */
+/** GET /api/v1/user/profile */
+export const getProfile = () =>
+  api.get<{ success: boolean; data: AuthUser }>("/v1/user/profile", getAccessToken());
 
-export interface ProfileResponse {
-  success: boolean;
-  data: AuthUser | DatabaseUser;
-}
+/** PATCH /api/v1/user/profile */
+export const updateProfile = (data: { fullName?: string; email?: string; avatarUrl?: string }) =>
+  api.patch<{ success: boolean; message: string }>("/v1/user/profile", data, getAccessToken());
 
-export const getProfile = () => {
-  return api.get<ProfileResponse>(
-    "/v1/user/profile",
-    getAccessToken()
-  );
-};
-
-/* =========================================================
-   16. CẬP NHẬT HỒ SƠ
-   PATCH /api/v1/user/profile
-   ========================================================= */
-
-export interface UpdateProfileRequest {
-  fullName?: string;
-  email?: string;
-  avatarUrl?: string;
-}
-
-export const updateProfile = (data: UpdateProfileRequest) => {
-  return api.patch<ApiMessageResponse>(
-    "/v1/user/profile",
-    data,
-    getAccessToken()
-  );
-};
-
-/* =========================================================
-   17. ĐỔI MẬT KHẨU
-   PATCH /api/v1/user/password/change
-   ========================================================= */
-
-export interface ChangePasswordRequest {
+/** PATCH /api/v1/user/password/change */
+export const changePassword = (data: {
   oldPassword: string;
   newPassword: string;
   confirmNewPassword: string;
-}
-
-export const changePassword = (data: ChangePasswordRequest) => {
-  return api.patch<ApiMessageResponse>(
-    "/v1/user/password/change",
-    data,
-    getAccessToken()
-  );
-};
+}) => api.patch<{ success: boolean; message: string }>(
+  "/v1/user/password/change", data, getAccessToken()
+);
