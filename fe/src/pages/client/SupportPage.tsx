@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Phone, MessageCircle, Bot, Mail, Search, ChevronDown, CheckCircle, Clock, Shield, DollarSign } from "lucide-react";
+import { ChevronDown, CheckCircle, Clock, Shield, DollarSign } from "lucide-react";
 
 const SupportPage = () => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [activeFaqCategory, setActiveFaqCategory] = useState<"booking" | "pricing" | "account" | "refund">("booking");
   const [openAccordion, setOpenAccordion] = useState<number | null>(0);
   const [formData, setFormData] = useState({
@@ -14,65 +13,6 @@ const SupportPage = () => {
     content: "",
   });
   const [showSuccess, setShowSuccess] = useState(false);
-
-  const quickSearchKeywords = [
-    { text: "Cách đặt xe", icon: "🚗" },
-    { text: "Quên đồ trên xe", icon: "🧳" },
-    { text: "Hóa đơn VAT", icon: "🧾" },
-    { text: "Phí hủy chuyến", icon: "❌" },
-    { text: "Đổi điểm đón", icon: "📍" },
-  ];
-
-  const supportChannels = [
-    {
-      id: "hotline",
-      title: "Tổng đài CSKH 24/7",
-      description: "Hỗ trợ khẩn cấp mọi lúc, xử lý sự cố an toàn trên hành trình và can thiệp kịp thời 24/7.",
-      label: "Hotline cước phí tiêu chuẩn",
-      value: "1900 8888",
-      action: "Gọi ngay hotline",
-      actionHref: "tel:19008888",
-      icon: Phone,
-      color: "emerald",
-      badge: "Trực tuyến 24/7",
-    },
-    {
-      id: "zalo",
-      title: "Zalo Official Account",
-      description: "Nhắn tin trực tiếp với chuyên viên tư vấn, gửi ảnh biên lai hoặc vị trí định vị nhanh chóng.",
-      label: "Tài khoản chính thức",
-      value: "GoRide Vietnam OA",
-      action: "Chat qua Zalo",
-      actionHref: "#",
-      icon: MessageCircle,
-      color: "blue",
-      badge: "Xác thực OA",
-    },
-    {
-      id: "ai",
-      title: "Trợ lý ảo GoRide AI",
-      description: "Giải đáp thắc mắc cước phí, tra cứu hành trình, tự động tìm mã khuyến mãi và tư vấn dịch vụ.",
-      label: "Hệ thống xử lý thông minh",
-      value: "Bot AI Song ngữ",
-      action: "Trò chuyện ngay",
-      actionHref: "#",
-      icon: Bot,
-      color: "blue",
-      badge: "Tức thì 0s",
-    },
-    {
-      id: "email",
-      title: "Hộp thư hỗ trợ",
-      description: "Tiếp nhận phản ánh chất lượng, khiếu nại cước phí, cấp hóa đơn VAT điện tử cho doanh nghiệp.",
-      label: "Hòm thư chăm sóc",
-      value: "support@goride.vn",
-      action: "Gửi email khiếu nại",
-      actionHref: "mailto:support@goride.vn",
-      icon: Mail,
-      color: "cyan",
-      badge: "Cam kết 24h",
-    },
-  ];
 
   const faqCategories = [
     { id: "booking", label: "Đặt chuyến & Đi lại" },

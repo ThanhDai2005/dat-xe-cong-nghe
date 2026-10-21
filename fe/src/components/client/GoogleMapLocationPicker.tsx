@@ -259,11 +259,11 @@ export default function GoogleMapLocationPicker({
         zoomControl: true,
       });
 
-      // Use CartoDB Voyager tiles with user API key
-      const cartoKey =
-        import.meta.env.VITE_CARTO_API_KEY ||
-        "cb1_4qba_1_89332608a7ff1e48af6f1dc6";
-      const tileUrl = `https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${cartoKey}`;
+      // Use CartoDB Voyager tiles (read key from env, do not hardcode secrets)
+      const cartoKey = import.meta.env.VITE_CARTO_API_KEY;
+      const tileUrl = cartoKey
+        ? `https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${cartoKey}`
+        : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 
       L.tileLayer(tileUrl, {
         attribution:
