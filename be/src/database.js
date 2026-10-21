@@ -1,10 +1,7 @@
 const mysql = require("mysql2");
 const fs = require("fs");
-const path = require("path");
-require("dotenv").config({
-  path: path.join(__dirname, "../.env"),
-  quiet: true,
-});
+const { resolveBackendPath } = require("./config/env");
+const sslCaPath = resolveBackendPath(process.env.DB_SSL_CA);
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -14,7 +11,7 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   timezone: "Z",
   ssl: {
-    ca: fs.readFileSync(path.join(__dirname, "../", process.env.DB_SSL_CA)),
+    ca: fs.readFileSync(sslCaPath),
   },
   waitForConnections: true,
   connectionLimit: 10,
