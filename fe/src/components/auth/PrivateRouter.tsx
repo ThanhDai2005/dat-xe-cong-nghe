@@ -1,9 +1,11 @@
-const PrivateRouter = () => {
-    return (
-        <>
-            <div>PrivateRouter</div>
-        </>
-    )
-}
+import { Navigate, Outlet } from "react-router-dom";
+import { isAuthenticated } from "@/services/auth.service";
 
-export default PrivateRouter
+const PrivateRouter = () => {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return <Outlet />;
+};
+
+export default PrivateRouter;

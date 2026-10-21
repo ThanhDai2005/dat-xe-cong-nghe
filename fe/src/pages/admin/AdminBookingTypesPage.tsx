@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   BookmarkCheck,
-  CheckCircle2,
-  FileText,
-  Layers,
   Plus,
   RefreshCw,
   Search,
-  Sparkles,
   X,
 } from "lucide-react";
 import {

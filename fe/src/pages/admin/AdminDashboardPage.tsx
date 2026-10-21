@@ -3,17 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import {
   ArrowRight,
-  BookmarkCheck,
   CalendarDays,
   CarFront,
-  CheckCircle2,
   CreditCard,
-  ExternalLink,
   MapPin,
   Plus,
   RefreshCw,
   RotateCcw,
-  Sparkles,
   Ticket,
   TrendingUp,
   Users,
@@ -268,7 +264,7 @@ export default function AdminDashboardPage() {
                       }
                     />
                     <Tooltip
-                      formatter={(value: number) => [currency(value), "Doanh thu"]}
+                      formatter={(value: any) => [currency(Number(value) || 0), "Doanh thu"]}
                       labelStyle={{ fontWeight: 600 }}
                       contentStyle={{
                         borderRadius: "12px",

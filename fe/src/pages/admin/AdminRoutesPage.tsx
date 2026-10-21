@@ -19,7 +19,6 @@ import {
   type AdminStop,
   type CreateRoutePayload,
   type CreateStopPayload,
-  type UpdateRoutePayload,
 } from "@/services/admin.service";
 import { Badge } from "@/components/ui/badge";
 import {

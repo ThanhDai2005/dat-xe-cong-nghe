@@ -63,8 +63,33 @@ app.use(express.urlencoded({ extended: true }));
 // ========================================
 const authRoutes = require("./src/auth/authRoutes");
 const adminRouter = require("./src/admin/adminRouter");
+const customerRoutes = require("./src/customer/customerRoutes");
+const userRoutes = require("./src/user/userRoutes");
+const driverRoutes = require("./src/driver/driverRoutes");
 
+// 1. Auth routes (/api/v1/auth, /v1/auth, /api/auth)
+app.use("/api/v1/auth", authRoutes);
+app.use("/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
+
+// 2. User profile routes (/api/v1/user, /v1/user, /api/user)
+app.use("/api/v1/user", userRoutes);
+app.use("/v1/user", userRoutes);
+app.use("/api/user", userRoutes);
+
+// 3. Customer booking routes (/api/v1/customer, /v1/customer, /api/customer, /api/customer/v1)
+app.use("/api/v1/customer", customerRoutes);
+app.use("/v1/customer", customerRoutes);
+app.use("/api/customer", customerRoutes);
+app.use("/api/customer/v1", customerRoutes);
+app.use("/customer/v1", customerRoutes);
+
+// 4. Driver & On-Demand routes (/api/v1/driver, /v1/driver, /api/driver)
+app.use("/api/v1/driver", driverRoutes);
+app.use("/v1/driver", driverRoutes);
+app.use("/api/driver", driverRoutes);
+
+// 5. Admin routes (/api/v1/admin, /v1/admin, /api/admin)
 app.use("/api/v1/admin", adminRouter);
 app.use("/v1/admin", adminRouter);
 app.use("/api/admin", adminRouter);

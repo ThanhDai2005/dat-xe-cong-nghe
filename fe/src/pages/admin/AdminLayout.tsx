@@ -38,7 +38,19 @@ const topNavLinks = [
   { title: "Hủy & Hoàn tiền", href: "/admin/cancellations" },
 ];
 
-const navGroups = [
+type NavItem = {
+  title: string;
+  url: string;
+  icon: any;
+  external?: boolean;
+};
+
+type NavGroup = {
+  title: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
   {
     title: "TỔNG QUAN",
     items: [

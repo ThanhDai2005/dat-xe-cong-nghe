@@ -2,14 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import {
   CarFront,
   CheckCircle2,
-  Clock,
   Edit,
   Layers,
   Plus,
   RefreshCw,
   Search,
   Tag,
-  Truck,
   Users,
   X,
 } from "lucide-react";

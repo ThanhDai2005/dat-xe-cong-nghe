@@ -1,332 +1,627 @@
-import { useState, type FormEvent } from "react";
-import { MapPin, ArrowRight } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  MapPin,
+  ArrowRight,
+  ArrowUpDown,
+  CalendarDays,
+  Clock3,
+  Users,
+  CarFront,
+  ShieldCheck,
+  CheckCircle2,
+  CircleAlert,
+  TicketCheck,
+  Coins,
+  MapPinned,
+} from "lucide-react";
 
-const BookingCard = () => {
-  const [selectedVehicle, setSelectedVehicle] = useState<"4" | "7">("4");
-  const [currentPrice, setCurrentPrice] = useState(86000);
-  const [pickupValue, setPickupValue] = useState("Vị trí hiện tại");
-  const [dropoffValue, setDropoffValue] = useState("");
-  const [phoneValue, setPhoneValue] = useState("");
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+import { ROUTES, formatMoney, formatDateTime } from "./bookingCardData";
 
-  const selectVehicle = (type: "4" | "7", price: number) => {
-    setSelectedVehicle(type);
-    setCurrentPrice(price);
+import type { RouteOption, Trip } from "./bookingCardData";
+
+import { isAuthenticated } from "@/services/auth.service";
+import { bookingApi, bookingErrorMessage } from "@/services/booking.service";
+import GoogleMapLocationPicker from "@/components/client/GoogleMapLocationPicker";
+
+const today = () => {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
+
+export default function BookingCard() {
+  const navigate = useNavigate();
+
+  const [routeId, setRouteId] = useState("");
+  const [pickup, setPickup] = useState("");
+  const [destination, setDestination] = useState("");
+  const [seatCount, setSeatCount] = useState(1);
+  const [departureDate, setDepartureDate] = useState(today);
+  const [routes, setRoutes] = useState<RouteOption[]>([]);
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [searching, setSearching] = useState(false);
+  const searchEpoch = useRef(0);
+
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  const [selectedTripId, setSelectedTripId] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const selectedRoute: RouteOption | undefined = useMemo(
+    () => routes.find((route) => route.id === routeId),
+    [routeId, routes],
+  );
+
+  useEffect(() => {
+    let active = true;
+    bookingApi.routes()
+      .then((rows) => {
+        if (active) setRoutes(rows.map((route) => ({
+          id: route.routeId,
+          name: `${route.origin} → ${route.destination}`,
+          pricePerSeat: 0,
+          points: 0,
+        })));
+      })
+      .catch((cause) => { if (active) setError(bookingErrorMessage(cause)); });
+    return () => { active = false; };
+  }, []);
+
+  const availableTrips = useMemo(
+    () => trips.filter((trip) => trip.availableSeats >= seatCount),
+    [trips, seatCount],
+  );
+
+  const selectedTrip = useMemo(
+    () => availableTrips.find((trip) => trip.id === selectedTripId),
+    [availableTrips, selectedTripId],
+  );
+
+  const totalPrice = selectedTrip
+    ? selectedTrip.pricePerSeat * seatCount
+    : 0;
+
+  const handleRouteChange = (value: string) => {
+    searchEpoch.current += 1;
+    setSearching(false);
+    setRouteId(value);
+    setSelectedTripId("");
+    setSearchPerformed(false);
+    setTrips([]);
+    setError("");
+    setNotice("");
   };
 
-  const setDropoff = (address: string) => {
-    setDropoffValue(address);
+  const handleSwapLocations = () => {
+    searchEpoch.current += 1;
+    setSearching(false);
+    setPickup(destination);
+    setDestination(pickup);
+    setSelectedTripId("");
+    setSearchPerformed(false);
+    setError("");
+    setNotice("");
   };
 
-  const handleBookingSubmit = (e: FormEvent) => {
-    e.preventDefault();
+  const validateLocations = (): boolean => {
+    if (!selectedRoute) {
+      setError("Vui lòng chọn tuyến đường.");
+      return false;
+    }
 
-    if (!dropoffValue.trim()) {
-      alert("Vui lòng nhập địa chỉ điểm đến!");
+    if (!departureDate) {
+      setError("Vui lòng chọn ngày khởi hành.");
+      return false;
+    }
+
+    if (
+      pickup.trim() && destination.trim() &&
+      pickup.trim().toLocaleLowerCase("vi") ===
+      destination.trim().toLocaleLowerCase("vi")
+    ) {
+      setError("Điểm đón và điểm đến không được trùng nhau.");
+      return false;
+    }
+
+    if (!Number.isInteger(seatCount) || seatCount < 1) {
+      setError("Số ghế phải lớn hơn hoặc bằng 1.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSearchTrips = async () => {
+    setError("");
+    setNotice("");
+    setSelectedTripId("");
+    setSearchPerformed(false);
+
+    if (!validateLocations()) return;
+
+    const epoch = ++searchEpoch.current;
+    setSearching(true);
+    try {
+      const rows = await bookingApi.trips(routeId, departureDate, seatCount);
+      if (epoch !== searchEpoch.current) return;
+      setTrips(rows.map((trip) => ({
+        id: trip.tripId,
+        routeId,
+        departureAt: trip.departureTime,
+        availableSeats: trip.availableSeats,
+        vehicle: trip.vehicleType,
+        pricePerSeat: trip.price ?? 0,
+        points: 0,
+      })));
+      setSearchPerformed(true);
+      if (rows.length === 0) setNotice("Hiện chưa có chuyến phù hợp với số ghế đã chọn.");
+    } catch (cause) {
+      if (epoch === searchEpoch.current) setError(bookingErrorMessage(cause));
+    } finally {
+      if (epoch === searchEpoch.current) setSearching(false);
+    }
+  };
+
+  const handleContinue = () => {
+    setError("");
+    setNotice("");
+
+    if (!validateLocations()) return;
+
+    if (!selectedTrip || !selectedRoute) {
+      setError("Vui lòng chọn một chuyến xe trước khi tiếp tục.");
       return;
     }
 
-    if (!phoneValue.trim()) {
-      alert("Vui lòng nhập số điện thoại để tài xế liên hệ!");
+    if (
+      !Number.isInteger(seatCount) ||
+      seatCount < 1 ||
+      seatCount > selectedTrip.availableSeats
+    ) {
+      setError("Số ghế đã chọn không hợp lệ.");
       return;
     }
 
-    setIsSubmitting(true);
+    const params = new URLSearchParams({
+      route: selectedRoute.id,
+      routeName: selectedRoute.name,
+      tripId: selectedTrip.id,
+      tripType: "merge",
+      seats: String(seatCount),
+      availableSeats: String(selectedTrip.availableSeats),
+      pickup: pickup.trim(),
+      destination: destination.trim(),
+      departureAt: selectedTrip.departureAt,
+      vehicle: selectedTrip.vehicle,
+    });
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setShowFeedback(true);
-      setTimeout(() => setShowFeedback(false), 5000);
-    }, 1500);
+    const bookingUrl = `/booking?${params.toString()}`;
+
+    if (isAuthenticated()) {
+      navigate(bookingUrl);
+      return;
+    }
+
+    navigate(`/login?redirect=${encodeURIComponent(bookingUrl)}`);
   };
+
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 hover:border-blue-200 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100";
 
   return (
-    <div
-      className="w-full"
-      data-purpose="ride-booking-widget"
-      id="booking-card"
-    >
-      <div className="bg-white rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 shadow-xl border border-slate-100/90 relative">
-        {/* Card Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div>
-            <span className="text-[10px] md:text-[11px] uppercase tracking-wider font-extrabold text-[#0050c8] block mb-0.5">
-              Đặt chuyến ngay
-            </span>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight">
-              Bạn muốn đi đâu?
-            </h2>
-          </div>
-          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/60 text-emerald-700 text-xs font-semibold">
-            <svg
-              className="w-3.5 h-3.5 text-emerald-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path
-                clipRule="evenodd"
-                d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z"
-                fillRule="evenodd"
-              />
-            </svg>
-            An toàn
+    <section id="booking" className="relative z-10 w-full min-w-0">
+      <div className="mx-auto w-full max-w-[430px] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.10)] sm:rounded-3xl">
+        {/* Tiêu đề */}
+        <div className="border-b border-slate-100 px-5 py-5 sm:px-6 sm:py-6">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-extrabold tracking-wide text-blue-700">
+                <CarFront size={14} />
+                ĐẶT CHUYẾN NGAY
+              </span>
+
+              <h2 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-2xl">
+                Bạn muốn đi đâu?
+              </h2>
+
+              <p className="mt-1.5 text-xs leading-5 text-slate-500 sm:text-sm">
+                Nhập thông tin hành trình của bạn.
+              </p>
+            </div>
+
+            <div className="flex shrink-0 flex-col items-center rounded-full border border-blue-100 bg-blue-50 px-3 py-2.5">
+              <ShieldCheck size={19} className="text-blue-600" />
+              <span className="mt-1 text-[11px] font-bold text-slate-800">
+                An toàn
+              </span>
+              <span className="text-[10px] text-slate-500">GoRide</span>
+            </div>
           </div>
         </div>
 
-        {/* Booking Form */}
-        <form
-          className="mt-3 md:mt-3.5 space-y-3"
-          onSubmit={handleBookingSubmit}
-        >
-          {/* Pickup & Destination Container */}
-          <div className="relative space-y-2.5">
-            {/* Vertical Dotted Line */}
-            <div className="absolute left-4 top-8 bottom-8 w-0.5 border-l-2 border-dashed border-slate-300 pointer-events-none z-0" />
-
-            {/* Input: Điểm đón */}
-            <div className="relative z-10">
-              <label className="block text-xs font-semibold text-slate-500 mb-0.5 md:mb-1">
-                Điểm đón
-              </label>
-              <div className="relative flex items-center">
-                <div className="absolute left-3 w-3 h-3 rounded-full border-2 border-[#0050c8] bg-white flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#0050c8]" />
-                </div>
-                <input
-                  type="text"
-                  value={pickupValue}
-                  onChange={(e) => setPickupValue(e.target.value)}
-                  className="w-full pl-9 pr-9 py-2 md:py-2.5 text-sm font-medium text-slate-800 bg-slate-50/70 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#0050c8] focus:border-[#0050c8] transition-colors h-11"
-                  placeholder="Nhập địa chỉ đón"
-                  required
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 text-slate-400 hover:text-[#0050c8] p-1"
-                  title="Định vị hiện tại"
-                >
-                  <MapPin className="w-4 h-4" />
-                </button>
-              </div>
+        <div className="space-y-4 p-4 sm:p-5">
+          {/* Thông báo lỗi */}
+          {error && (
+            <div
+              role="alert"
+              className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+            >
+              <CircleAlert size={17} className="mt-0.5 shrink-0" />
+              <span>{error}</span>
             </div>
+          )}
 
-            {/* Input: Điểm đến */}
-            <div className="relative z-10">
-              <label className="block text-xs font-semibold text-slate-500 mb-0.5 md:mb-1">
-                Điểm đến
-              </label>
-              <div className="relative flex items-center">
-                <div className="absolute left-3 w-3 h-3 rounded-sm bg-red-500" />
-                <input
-                  type="text"
-                  value={dropoffValue}
-                  onChange={(e) => setDropoffValue(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 md:py-2.5 text-sm font-medium text-slate-800 bg-slate-50/70 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#0050c8] focus:border-[#0050c8] transition-colors h-11"
-                  placeholder="Nhập địa chỉ điểm đến"
-                  required
-                />
-              </div>
+          {notice && (
+            <div
+              role="status"
+              className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800"
+            >
+              <CircleAlert size={17} className="mt-0.5 shrink-0" />
+              <span>{notice}</span>
             </div>
+          )}
+
+          {/* Tuyến đường */}
+          <div className="min-w-0">
+            <label
+              htmlFor="booking-route"
+              className="mb-1.5 block text-sm font-bold text-slate-700"
+            >
+              Tuyến đường
+            </label>
+
+            <select
+              id="booking-route"
+              value={routeId}
+              onChange={(event) => handleRouteChange(event.target.value)}
+              className={inputClass}
+            >
+              <option value="">-- Chọn tuyến đường --</option>
+              {routes.map((route) => (
+                <option key={route.id} value={route.id}>
+                  {route.name}
+                </option>
+              ))}
+            </select>
+
+            {selectedRoute?.note && (
+              <p className="mt-2 text-xs leading-5 text-amber-700">
+                Lưu ý: {selectedRoute.note}
+              </p>
+            )}
+            {routes.length === 0 && !error && (
+              <div className="mt-2 rounded-xl border border-amber-100 bg-amber-50 p-3 text-xs text-amber-900">
+                <p className="font-bold">Hiện chưa có lịch chuyến để đặt.</p>
+                <p className="mt-1">Các tuyến và giá tham khảo của GoRide:</p>
+                <ul className="mt-2 space-y-1">
+                  {ROUTES.map((route) => <li key={route.id}>{route.name} · {formatMoney(route.pricePerSeat)}/ghế</li>)}
+                </ul>
+              </div>
+            )}
           </div>
 
-          {/* Input: Số điện thoại */}
           <div>
-            <label className="block text-xs font-semibold text-slate-500 mb-0.5 md:mb-1">
-              Số điện thoại khách hàng
+            <label htmlFor="booking-departure-date" className="mb-1.5 block text-sm font-bold text-slate-700">
+              Ngày khởi hành
             </label>
-            <div className="flex rounded-xl shadow-sm border border-slate-200 overflow-hidden bg-slate-50/70 focus-within:border-[#0050c8] focus-within:ring-2 focus-within:ring-[#0050c8] h-11">
-              <span className="inline-flex items-center px-3 bg-slate-100 text-slate-600 text-xs font-bold border-r border-slate-200">
-                +84
-              </span>
-              <input
-                type="tel"
-                value={phoneValue}
-                onChange={(e) => setPhoneValue(e.target.value)}
-                pattern="[0-9]{9,10}"
-                className="block w-full py-2 px-3 text-sm font-medium bg-transparent border-0 focus:ring-0 text-slate-800 placeholder-slate-400"
-                placeholder="9xxxxxxxxx"
-                required
+            <input id="booking-departure-date" type="date" min={today()} value={departureDate}
+              onChange={(event) => { searchEpoch.current += 1; setSearching(false); setDepartureDate(event.target.value); setTrips([]); setSearchPerformed(false); setSelectedTripId(""); }}
+              className={inputClass} />
+          </div>
+
+          {/* Điểm đón */}
+          <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-blue-200 hover:shadow-md sm:p-4">
+            <GoogleMapLocationPicker
+              label="Điểm đón"
+              value={pickup}
+              placeholder="Nhấn để chọn điểm đón trên Google Maps"
+              onChange={(address: string) => {
+                searchEpoch.current += 1;
+                setSearching(false);
+                setPickup(address);
+                setError("");
+                setNotice("");
+                setSelectedTripId("");
+                setSearchPerformed(false);
+              }}
+              markerColor="#2563eb"
+            />
+
+            <p className="mt-2 flex items-center gap-1.5 text-xs leading-5 text-slate-500">
+              <MapPinned size={14} className="shrink-0 text-blue-600" />
+              Nhấn vào ô để chọn vị trí đón khách.
+            </p>
+          </div>
+
+          {/* Điểm đến */}
+          <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-blue-200 hover:shadow-md sm:p-4">
+            <GoogleMapLocationPicker
+              label="Điểm đến"
+              value={destination}
+              placeholder="Nhấn để chọn điểm đến trên Google Maps"
+              onChange={(address: string) => {
+                searchEpoch.current += 1;
+                setSearching(false);
+                setDestination(address);
+                setError("");
+                setNotice("");
+                setSelectedTripId("");
+                setSearchPerformed(false);
+              }}
+              markerColor="#ef4444"
+            />
+
+            <p className="mt-2 flex items-center gap-1.5 text-xs leading-5 text-slate-500">
+              <MapPinned size={14} className="shrink-0 text-red-500" />
+              Nhấn vào ô để chọn vị trí đến.
+            </p>
+          </div>
+
+          {/* Đổi điểm */}
+          <p className="text-xs leading-5 text-slate-500">
+            Vị trí trên bản đồ để tham khảo; điểm đón/trả chính thức được chọn từ điểm dừng của tuyến ở bước tiếp theo.
+          </p>
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={handleSwapLocations}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition hover:border-blue-200 hover:bg-blue-100 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              title="Đổi điểm đón và điểm đến"
+            >
+              <ArrowUpDown size={16} />
+              Đổi điểm đón và điểm đến
+            </button>
+          </div>
+
+          {/* Số ghế */}
+          <div>
+            <label
+              htmlFor="booking-seats"
+              className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700"
+            >
+              <Users
+                size={17}
+                className="shrink-0 text-emerald-600"
               />
-            </div>
-          </div>
-
-          {/* Shortcut Location Pills */}
-          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-            <button
-              type="button"
-              onClick={() => setDropoff("Sân bay Tân Sơn Nhất")}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0050c8] text-slate-600 transition-colors"
-            >
-              📍 Sân bay Tân Sơn Nhất
-            </button>
-            <button
-              type="button"
-              onClick={() => setDropoff("Chợ Bến Thành")}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0050c8] text-slate-600 transition-colors"
-            >
-              📍 Chợ Bến Thành
-            </button>
-            <button
-              type="button"
-              onClick={() => setDropoff("Landmark 81")}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-slate-100 hover:bg-blue-50 hover:text-[#0050c8] text-slate-600 transition-colors"
-            >
-              📍 Landmark 81
-            </button>
-          </div>
-
-          {/* Vehicle Selection */}
-          <div className="pt-1">
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-              Chọn loại xe
+              <span>Số ghế</span>
             </label>
-            <div className="grid grid-cols-2 gap-2 md:gap-2.5">
-              {/* Vehicle 4 seats */}
-              <div
-                onClick={() => selectVehicle("4", 86000)}
-                className={`cursor-pointer rounded-xl md:rounded-2xl p-2.5 text-left transition-all ${
-                  selectedVehicle === "4"
-                    ? "border-2 border-[#0050c8] bg-blue-50/50"
-                    : "border border-slate-200 bg-white hover:border-slate-300"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-xs font-bold text-slate-900">
-                    GoRide 4 chỗ
-                  </span>
-                  <span
-                    className={`text-xs font-black ${
-                      selectedVehicle === "4"
-                        ? "text-[#0050c8]"
-                        : "text-transparent"
-                    }`}
-                  >
-                    ✓
-                  </span>
-                </div>
-                <p className="text-[10px] md:text-[11px] text-slate-500 mb-1 md:mb-1.5">
-                  Nhanh & tiết kiệm
-                </p>
-                <div
-                  className={`font-extrabold text-xs md:text-sm ${
-                    selectedVehicle === "4"
-                      ? "text-[#0050c8]"
-                      : "text-slate-800"
-                  }`}
-                >
-                  86.000đ
-                </div>
-              </div>
 
-              {/* Vehicle 7 seats */}
-              <div
-                onClick={() => selectVehicle("7", 124000)}
-                className={`cursor-pointer rounded-xl md:rounded-2xl p-2.5 text-left transition-all ${
-                  selectedVehicle === "7"
-                    ? "border-2 border-[#0050c8] bg-blue-50/50"
-                    : "border border-slate-200 bg-white hover:border-slate-300"
-                }`}
+            <div className="relative">
+              <Users
+                size={17}
+                className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-emerald-600"
+              />
+
+              <select
+                id="booking-seats"
+                value={seatCount}
+                onChange={(event) => {
+                  searchEpoch.current += 1;
+                  setSearching(false);
+                  setSeatCount(Number(event.target.value));
+                  setSelectedTripId("");
+                  setSearchPerformed(false);
+                  setError("");
+                  setNotice("");
+                }}
+                className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-sm text-slate-800 outline-none transition hover:border-blue-200 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
               >
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-xs font-bold text-slate-900">
-                    GoRide 7 chỗ
-                  </span>
-                  <span
-                    className={`text-xs font-black ${
-                      selectedVehicle === "7"
-                        ? "text-[#0050c8]"
-                        : "text-transparent"
-                    }`}
-                  >
-                    ✓
-                  </span>
-                </div>
-                <p className="text-[10px] md:text-[11px] text-slate-500 mb-1 md:mb-1.5">
-                  Rộng rãi, thoải mái
-                </p>
-                <div
-                  className={`font-extrabold text-xs md:text-sm ${
-                    selectedVehicle === "7"
-                      ? "text-[#0050c8]"
-                      : "text-slate-800"
-                  }`}
-                >
-                  124.000đ
-                </div>
-              </div>
+                {[1, 2, 3, 4].map((count) => (
+                  <option key={count} value={count}>
+                    {count} ghế
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
+          {/* Giá vé */}
+          <div className="flex items-center gap-3 rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50 to-white p-3.5 sm:p-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
+              <TicketCheck size={20} />
+            </div>
 
-          {/* Price Summary */}
-          <div className="pt-2 pb-0.5 flex items-baseline justify-between">
-            <div>
-              <span className="text-xs font-medium text-slate-500">
-                Giá dự kiến:
-              </span>
-              <p className="text-[10px] text-slate-400">
-                Đã bao gồm phí nền tảng
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-800">
+                Giá vé theo tuyến
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                {selectedTrip && selectedTrip.pricePerSeat > 0
+                  ? `${formatMoney(selectedTrip.pricePerSeat)} / ghế`
+                  : "Giá được xác nhận khi chọn chuyến"}
               </p>
             </div>
-            <div className="text-right">
-              <span className="text-xl md:text-2xl font-black text-[#0050c8]">
-                {new Intl.NumberFormat("vi-VN").format(currentPrice)}đ
-              </span>
-            </div>
           </div>
 
-          {/* Submit Button */}
+          {/* Tìm chuyến */}
           <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-[#0050c8] hover:bg-[#0040a2] active:bg-[#003580] text-white font-bold h-11 md:h-12 px-4 rounded-xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all group disabled:opacity-70 disabled:cursor-not-allowed"
+            type="button"
+            onClick={handleSearchTrips}
+            disabled={searching}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 active:translate-y-0"
           >
-            {isSubmitting ? (
-              <>
-                <svg
-                  className="animate-spin h-4 w-4 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                <span className="text-sm">Đang gửi yêu cầu...</span>
-              </>
-            ) : (
-              <>
-                <span className="text-sm">Đặt xe & Thanh toán</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </>
-            )}
+            <MapPin size={17} />
+            {searching ? "Đang tìm chuyến..." : "Tìm chuyến xe"}
+            <ArrowRight size={17} />
           </button>
 
-          <p className="text-[10px] text-center text-slate-400 pt-0.5">
-            🔒 Thông tin được bảo mật và tự động điều phối xe gần nhất.
-          </p>
-        </form>
+          {/* Danh sách chuyến */}
+          {searchPerformed && (
+            <div className="space-y-4 border-t border-slate-100 pt-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-extrabold text-slate-900">
+                    Chuyến xe phù hợp
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {selectedRoute?.name}
+                  </p>
+                </div>
 
-        {/* Feedback Alert */}
-        {showFeedback && (
-          <div className="mt-3 p-3 rounded-xl text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 animate-in fade-in slide-in-from-top-2 duration-300">
-            🎉 <strong>Yêu cầu thành công!</strong> Đang tìm tài xế GoRide khu
-            vực lân cận...
-          </div>
-        )}
+                <span className="inline-flex w-fit items-center rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700">
+                  {availableTrips.length} chuyến khả dụng
+                </span>
+              </div>
+
+              {availableTrips.length > 0 ? (
+                <div className="space-y-3">
+                  {availableTrips.map((trip) => {
+                    const isSelected = selectedTripId === trip.id;
+                    const tripTotal = trip.pricePerSeat * seatCount;
+
+                    return (
+                      <button
+                        key={trip.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTripId(trip.id);
+                          setError("");
+                          setNotice("");
+                        }}
+                        className={`w-full rounded-xl border p-3.5 text-left transition duration-200 hover:shadow-md sm:p-4 ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100"
+                            : "border-slate-200 bg-white hover:border-blue-300"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                              isSelected
+                                ? "bg-blue-600 text-white"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            <CarFront size={21} />
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-bold text-slate-900">
+                                {trip.vehicle}
+                              </p>
+
+                              {isSelected && (
+                                <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                                  Đã chọn
+                                </span>
+                              )}
+                            </div>
+
+                            <p className="mt-2 flex items-center gap-1.5 text-xs text-slate-600">
+                              <CalendarDays
+                                size={14}
+                                className="shrink-0 text-blue-600"
+                              />
+                              {formatDateTime(trip.departureAt)}
+                            </p>
+
+                            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
+                              <Users size={14} className="shrink-0" />
+                              Còn {trip.availableSeats} ghế
+                            </p>
+                          </div>
+
+                          <div className="shrink-0 text-right">
+                            <p className="text-sm font-extrabold text-blue-700 sm:text-base">
+                              {trip.pricePerSeat > 0 ? formatMoney(tripTotal) : "Xem giá ở bước tiếp theo"}
+                            </p>
+                            <p className="mt-1 text-[10px] text-slate-500">
+                              {trip.pricePerSeat > 0 ? `${formatMoney(trip.pricePerSeat)} / ghế` : "Giá theo loại vé"}
+                            </p>
+
+                            <div
+                              className={`ml-auto mt-2 flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                                isSelected
+                                  ? "border-blue-600 bg-blue-600 text-white"
+                                  : "border-slate-300 text-transparent"
+                              }`}
+                            >
+                              <CheckCircle2 size={14} />
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
+                  <Clock3 size={30} className="mx-auto text-slate-400" />
+                  <p className="mt-3 text-sm font-bold text-slate-800">
+                    Chưa tìm thấy chuyến xe phù hợp
+                  </p>
+                  <p className="mt-1.5 text-xs leading-5 text-slate-500">
+                    Hãy thử giảm số ghế hoặc kiểm tra lại tuyến đã chọn.
+                  </p>
+                </div>
+              )}
+
+              {/* Tổng kết chuyến */}
+              {selectedTrip && (
+                <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 sm:p-5">
+                  <h4 className="text-base font-extrabold text-slate-900">
+                    Thông tin đặt xe
+                  </h4>
+
+                  <div className="mt-4 space-y-3">
+                    {[
+                      ["Tuyến đường", selectedRoute?.name ?? ""],
+                      ["Điểm đón", pickup.trim()],
+                      ["Điểm đến", destination.trim()],
+                      ["Thời gian", formatDateTime(selectedTrip.departureAt)],
+                      ["Số ghế", `${seatCount} ghế`],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="flex items-start justify-between gap-4 text-sm"
+                      >
+                        <span className="shrink-0 text-slate-500">
+                          {label}
+                        </span>
+                        <span className="max-w-[65%] break-words text-right font-semibold text-slate-800">
+                          {value}
+                        </span>
+                      </div>
+                    ))}
+
+                    <div className="flex items-center justify-between gap-3 border-t border-blue-100 pt-3">
+                      <span className="text-sm font-bold text-slate-700">
+                        Tổng tiền dự kiến
+                      </span>
+                      <span className="text-xl font-extrabold text-blue-700">
+                        {selectedTrip.pricePerSeat > 0 ? formatMoney(totalPrice) : "Xác nhận ở bước tiếp theo"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 text-sm">
+                      <span className="flex items-center gap-2 text-slate-500">
+                        <Coins size={15} />
+                        Điểm dự kiến
+                      </span>
+                      <span className="font-bold text-blue-700">
+                        Chưa cấu hình
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleContinue}
+                    className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200 active:translate-y-0"
+                  >
+                    Tiếp tục đặt xe
+                    <ArrowRight size={17} />
+                  </button>
+
+                  <p className="mt-3 text-center text-xs leading-5 text-slate-500">
+                    Bạn sẽ được yêu cầu đăng nhập nếu chưa có phiên đăng nhập.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </section>
   );
-};
-
-export default BookingCard;
+}
