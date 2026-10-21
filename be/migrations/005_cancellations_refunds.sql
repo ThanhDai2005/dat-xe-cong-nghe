@@ -1,0 +1,28 @@
+CREATE TABLE IF NOT EXISTS cancellation_requests (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  booking_id CHAR(36) NOT NULL,
+  requested_by VARCHAR(100) NOT NULL,
+  reason TEXT NOT NULL,
+  status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+  admin_id VARCHAR(100) NULL,
+  reason_note TEXT NULL,
+  apply_commission_penalty TINYINT(1) NOT NULL DEFAULT 0,
+  penalty_amount DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  KEY idx_cancellations_booking (booking_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS refunds (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  booking_id CHAR(36) NOT NULL,
+  cancellation_id BIGINT NULL,
+  refund_percentage DECIMAL(5,2) NOT NULL DEFAULT 100.00,
+  final_refund_amount DECIMAL(12,2) NOT NULL,
+  status ENUM('PENDING', 'REFUNDED', 'FAILED') NOT NULL DEFAULT 'REFUNDED',
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  KEY idx_refunds_booking (booking_id)
+) ENGINE=InnoDB;

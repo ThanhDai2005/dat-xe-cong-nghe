@@ -22,6 +22,14 @@ export interface AuthResponse {
   data: { user: AuthUser; tokens: AuthTokens };
 }
 
+export const normalizeAuthUser = (user: any): AuthUser => ({
+  id: String(user?.id ?? ""),
+  fullName: user?.fullName ?? user?.full_name ?? "",
+  email: user?.email ?? "",
+  role: String(user?.role ?? "").toUpperCase(),
+  status: String(user?.status ?? "").toUpperCase(),
+});
+
 // ── Lưu token & user vào localStorage ─────────────────────────────────────
 export const saveTokens = (tokens: AuthTokens) => {
   localStorage.setItem("accessToken", tokens.accessToken);

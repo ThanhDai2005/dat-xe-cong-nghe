@@ -66,6 +66,7 @@ const adminRouter = require("./src/admin/adminRouter");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/admin", adminRouter);
+app.use("/v1/admin", adminRouter);
 app.use("/api/admin", adminRouter);
 
 // ========================================

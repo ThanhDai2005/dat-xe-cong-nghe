@@ -39,7 +39,7 @@ const login = async (req, res) => {
     const user = rows[0];
 
     // ── Kiểm tra role có khớp clientRole không ────────────────────────────
-    if (user.role !== clientRole) {
+    if (clientRole && String(user.role).toUpperCase() !== String(clientRole).toUpperCase()) {
       return res.status(403).json({
         success: false,
         message: `Tài khoản không có quyền truy cập với vai trò '${clientRole}'`,
@@ -47,11 +47,12 @@ const login = async (req, res) => {
     }
 
     // ── Kiểm tra trạng thái tài khoản ─────────────────────────────────────
-    if (user.status !== "active") {
+    const statusUpper = String(user.status || "").toUpperCase();
+    if (statusUpper !== "ACTIVE") {
       return res.status(403).json({
         success: false,
         message:
-          user.status === "banned"
+          statusUpper === "SUSPENDED" || statusUpper === "BANNED"
             ? "Tài khoản đã bị khóa. Vui lòng liên hệ hỗ trợ"
             : "Tài khoản chưa được kích hoạt",
       });
