@@ -1,9 +1,10 @@
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
+require("../config/env");
 const redis = require("../config/redis");
 
-// ─── Đọc khóa RS256 từ .env ───────────────────────────────────────────────
+// ─── Đọc khóa RS256 từ be/src/.env ────────────────────────────────────────
 const PRIVATE_KEY = (process.env.JWT_PRIVATE_KEY || "").replace(/\\n/g, "\n");
 const PUBLIC_KEY = (process.env.JWT_PUBLIC_KEY || "").replace(/\\n/g, "\n");
 
@@ -28,7 +29,7 @@ const K = {
  * @returns {string} JWT access token
  */
 const signAccessToken = (payload) => {
-  if (!PRIVATE_KEY) throw new Error("JWT_PRIVATE_KEY chưa được cấu hình trong .env");
+  if (!PRIVATE_KEY) throw new Error("JWT_PRIVATE_KEY chưa được cấu hình trong be/src/.env");
 
   const jti = uuidv4();
   return jwt.sign(
@@ -49,7 +50,7 @@ const signAccessToken = (payload) => {
  * @returns {object} decoded payload
  */
 const verifyAccessToken = async (token) => {
-  if (!PUBLIC_KEY) throw new Error("JWT_PUBLIC_KEY chưa được cấu hình trong .env");
+  if (!PUBLIC_KEY) throw new Error("JWT_PUBLIC_KEY chưa được cấu hình trong be/src/.env");
 
   const decoded = jwt.verify(token, PUBLIC_KEY, { algorithms: ["RS256"] });
 
